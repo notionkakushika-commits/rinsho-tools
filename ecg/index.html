@@ -1,34 +1,448 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>心電図ツール（準備中）｜臨床ツールズ</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>検診心電図 所見チェッカー（無症候性スクリーニング版）</title>
 <style>
- :root{--bg:#eef1f4;--card:#fff;--ink:#1f2a33;--sub:#5b6b78;--line:#e2e8ee;--accent:#0f8a9c;--accent-d:#0b6b78;--accent-bg:#e8f5f7}
- *{box-sizing:border-box}
- body{margin:0;background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
-  line-height:1.7;display:flex;justify-content:center;padding:24px 16px}
- .wrap{width:100%;max-width:480px;text-align:center;padding-top:40px}
- .ico{width:64px;height:64px;border-radius:16px;background:var(--accent-bg);color:var(--accent-d);
-  display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;margin:0 auto 18px}
- h1{font-size:22px;margin:0 0 6px}
- p{color:var(--sub);font-size:14.5px;margin:0 0 24px}
- a.back{display:inline-block;text-decoration:none;background:var(--ink);color:#fff;
-  border-radius:12px;padding:13px 22px;font-weight:700;font-size:15px}
- .note{margin-top:30px;font-size:12.5px;color:var(--sub);background:var(--card);border:1px solid var(--line);
-  border-radius:12px;padding:14px 16px;text-align:left;line-height:1.7}
- .note b{color:var(--ink)}
+  :root{
+    --bg:#f4f7fa; --panel:#ffffff; --ink:#1c2733; --sub:#5d6b7a;
+    --line:#e1e8ef; --accent:#2563a8; --accent-soft:#e8f0f9;
+    --green:#1f9d57; --green-bg:#e7f6ee;
+    --yellow:#c98a00; --yellow-bg:#fdf3da;
+    --red:#d23b3b; --red-bg:#fbe7e7;
+    --shadow:0 1px 3px rgba(20,40,60,.08),0 6px 20px rgba(20,40,60,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+  header{background:linear-gradient(135deg,#1f4e7a,#2f6fae);color:#fff;padding:20px 22px}
+  header h1{margin:0;font-size:19px;letter-spacing:.02em}
+  header .tag{display:inline-block;margin-top:8px;background:rgba(255,255,255,.18);
+    padding:3px 10px;border-radius:999px;font-size:12px}
+  header p{margin:10px 0 0;font-size:12.5px;opacity:.9}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px;display:grid;
+    grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  @media(max-width:860px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .panel>h2{margin:0;padding:13px 16px;font-size:14px;background:var(--accent-soft);
+    color:var(--accent);border-bottom:1px solid var(--line)}
+  .layer{padding:6px 0}
+  .layer-title{font-size:12px;font-weight:700;color:var(--accent);
+    padding:12px 16px 4px;letter-spacing:.04em}
+  .row{padding:10px 16px;border-top:1px solid var(--line)}
+  .row:first-child{border-top:none}
+  .row .pname{font-weight:700;font-size:14px}
+  .row .meta{font-size:11.5px;color:var(--sub);margin:1px 0 8px}
+  .opts{display:flex;flex-wrap:wrap;gap:6px}
+  .opt{border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:5px 11px;border-radius:999px;font-size:12.5px;cursor:pointer;
+    transition:.12s;user-select:none}
+  .opt:hover{border-color:var(--accent)}
+  .opt.normal.on{background:var(--green-bg);border-color:var(--green);color:var(--green);font-weight:700}
+  .opt.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .opt .dot{font-size:10px;margin-right:3px}
+
+  /* results */
+  .results{position:sticky;top:14px}
+  #banner{padding:15px 16px;font-weight:700;font-size:16px;border-bottom:1px solid var(--line)}
+  #banner.lv0{background:#eef2f6;color:var(--sub)}
+  #banner.lv1{background:var(--green-bg);color:var(--green)}
+  #banner.lv2{background:var(--yellow-bg);color:var(--yellow)}
+  #banner.lv3{background:var(--red-bg);color:var(--red)}
+  #list{padding:6px 14px 14px;max-height:62vh;overflow:auto}
+  .card{border:1px solid var(--line);border-left-width:5px;border-radius:9px;
+    padding:11px 13px;margin-top:10px}
+  .card.green{border-left-color:var(--green)} .card.yellow{border-left-color:var(--yellow)}
+  .card.red{border-left-color:var(--red)}
+  .card .cf{font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px}
+  .pill{font-size:12px;padding:2px 9px;border-radius:999px;color:#fff;white-space:nowrap}
+  .pill.green{background:var(--green)} .pill.yellow{background:var(--yellow)} .pill.red{background:var(--red)}
+  .card .dz{font-size:14px;color:var(--ink);margin-top:6px}
+  .card .dz b{color:var(--accent)}
+  .card .note{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.55}
+  .wavebtn{margin-top:9px;border:1px solid var(--accent);background:#fff;color:var(--accent);
+    border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700}
+  .wavebtn:hover{background:var(--accent-soft)}
+  .empty{color:var(--sub);font-size:14px;padding:16px;text-align:center}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:11px 16px;font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
+  .legend span{display:inline-flex;align-items:center;gap:4px}
+  .sq{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .toolbar{padding:11px 14px;display:flex;gap:8px;border-top:1px solid var(--line)}
+  .btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;
+    padding:8px;font-size:12.5px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  details.ref{margin:0}
+  details.ref summary{cursor:pointer;font-size:12.5px;color:var(--accent);padding:11px 16px;list-style:none}
+  details.ref summary::-webkit-details-marker{display:none}
+  .reftab{width:100%;border-collapse:collapse;font-size:14px}
+  .reftab td{border-top:1px solid var(--line);padding:9px 16px;line-height:1.5}
+  .reftab td:first-child{color:var(--sub);width:42%}
+  .disc{font-size:11px;color:var(--sub);padding:12px 18px;text-align:center}
+
+  /* wave modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,35,50,.55);display:none;
+    align-items:center;justify-content:center;padding:18px;z-index:50}
+  .overlay.on{display:flex}
+  .modal{background:#fff;border-radius:14px;max-width:700px;width:100%;max-height:92vh;
+    overflow:auto;box-shadow:0 12px 44px rgba(0,0,0,.32)}
+  .modal h3{margin:0;padding:14px 18px;font-size:16px;background:var(--accent-soft);
+    color:var(--accent);border-bottom:1px solid var(--line)}
+  .mbody{padding:16px 18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .wavesvg{flex:1 1 320px;min-width:280px;background:#fff;border:1px solid var(--line);border-radius:10px}
+  .wave-exp{flex:1 1 230px;font-size:14px;line-height:1.75;color:var(--ink)}
+  .wave-exp b{color:var(--accent)}
+  .bl{stroke:#dbe4ec;stroke-width:1}
+  .wp{fill:none;stroke:#d23b3b;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .wl{font-size:11px;font-weight:700;font-family:-apple-system,sans-serif}
+  .mclose{display:block;margin:0 18px 16px auto;border:1px solid var(--line);background:#fff;
+    border-radius:9px;padding:8px 18px;cursor:pointer;font-size:13px}
 </style>
 </head>
 <body>
+<header>
+  <h1>検診心電図 所見チェッカー</h1>
+  <span class="tag">無症候性スクリーニング版 — 診断・紹介トリアージのみ</span>
+  <p>各項目を上から確認し、正常範囲を外れた所見を選ぶと、示唆される疾患と「精密検査（循環器）の要否」を表示します。「📈 波形を見る」で典型波形と解説が開きます。治療・処方は扱いません。</p>
+</header>
+
 <div class="wrap">
- <div class="ico">心</div>
- <h1>心電図ツール（準備中）</h1>
- <p>このページは枠だけ用意してあります。心電図アプリができたら、ここに入れ替えてください。</p>
- <a class="back" href="../">← メニューに戻る</a>
- <div class="note"><b>差し替え方法：</b>このフォルダ（ecg）の <b>index.html</b> を、心電図アプリのHTMLで上書きアップロードするだけ。URL（…/ecg/）は変わりません。</div>
+  <!-- 入力側 -->
+  <div>
+    <div class="panel">
+      <details class="ref">
+        <summary>▸ 正常値リファレンス（タップで開く）</summary>
+        <table class="reftab">
+          <tr><td>心拍数</td><td>60–100 bpm</td></tr>
+          <tr><td>調律</td><td>洞調律（II誘導でP陽性・各QRS前にP）</td></tr>
+          <tr><td colspan="2" style="padding:14px 16px;background:#fbfdff">
+            <div style="font-size:12.5px;color:var(--sub);margin-bottom:6px;text-align:center">心電図の各部分が示すもの（患者さん説明用）</div>
+            <svg viewBox="0 0 640 250" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">
+              <g stroke="#c9d6e2" stroke-width="1" stroke-dasharray="3 3">
+                <line x1="120" y1="60" x2="120" y2="195"/>
+                <line x1="214" y1="40" x2="214" y2="200"/>
+                <line x1="380" y1="120" x2="380" y2="200"/>
+              </g>
+              <line x1="40" y1="150" x2="600" y2="150" stroke="#e1e8ef" stroke-width="1"/>
+              <path d="M40,150 L120,150 Q150,90 180,150 L210,150 L218,160 L230,48 L242,172 L252,150 L300,150 Q340,104 380,150 L600,150"
+                    fill="none" stroke="#d23b3b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+              <g font-family="-apple-system,sans-serif" font-size="14" font-weight="700">
+                <text x="150" y="78" fill="#2563a8" text-anchor="middle">P波</text>
+                <text x="230" y="38" fill="#2563a8" text-anchor="middle">QRS</text>
+                <text x="340" y="92" fill="#2563a8" text-anchor="middle">T波</text>
+                <text x="276" y="143" fill="#1f9d57" text-anchor="middle">ST</text>
+              </g>
+              <g stroke="#5d6b7a" stroke-width="1.4" fill="none"><path d="M120,52 L120,46 L214,46 L214,52"/></g>
+              <text x="167" y="38" fill="#1c2733" font-size="13" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">PR間隔</text>
+              <g stroke="#5d6b7a" stroke-width="1.4" fill="none"><path d="M214,182 L214,188 L252,188 L252,182"/></g>
+              <text x="233" y="204" fill="#1c2733" font-size="12.5" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">QRS幅</text>
+              <g stroke="#5d6b7a" stroke-width="1.4" fill="none"><path d="M214,222 L214,228 L380,228 L380,222"/></g>
+              <text x="297" y="244" fill="#1c2733" font-size="13" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">QT間隔</text>
+            </svg>
+            <div style="font-size:12px;color:var(--sub);margin-top:6px;line-height:1.6">
+              <b style="color:#2563a8">P波</b>＝心房の興奮／<b style="color:#2563a8">QRS</b>＝心室の興奮／<b style="color:#2563a8">T波</b>＝心室の回復。
+              <b>PR間隔</b>＝心房から心室への伝わる時間、<b>QT間隔</b>＝心室の興奮〜回復の時間を示します。
+            </div>
+          </td></tr>
+          <tr><td>P波</td><td>幅 &lt;120ms・高さ &lt;2.5mm</td></tr>
+          <tr><td>PR間隔</td><td>120–200 ms</td></tr>
+          <tr><td>QRS幅</td><td>&lt;120 ms（&lt;110で確実正常）</td></tr>
+          <tr><td>QRS電気軸</td><td>−30°〜+90°</td></tr>
+          <tr><td>QT/QTc</td><td>QTc 男 &lt;440 / 女 &lt;460 ms（&gt;500で高リスク）</td></tr>
+          <tr><td>ST</td><td>基線上（等電位）</td></tr>
+          <tr><td>T波</td><td>I・II・V3-6で陽性（aVR陰性は正常）</td></tr>
+          <tr><td>R波増高</td><td>V1→V6で漸増・移行帯 V3-4</td></tr>
+        </table>
+      </details>
+    </div>
+
+    <div class="panel" style="margin-top:14px">
+      <h2>所見チェック（① 計測値 → ② 波形 → ③ リズム）</h2>
+      <div id="form"></div>
+    </div>
+    <p class="disc">※ 本ツールは健診一次スクリーニングの補助です。最終判断・確定診断は循環器専門医によります。症候性（胸痛・失神・動悸等）がある場合は別フロー（虚血／不整脈）で対応してください。</p>
+  </div>
+
+  <!-- 結果側 -->
+  <div class="panel results">
+    <h2>判定結果</h2>
+    <div id="banner" class="lv0">所見を選択してください</div>
+    <div id="list"><div class="empty">正常範囲を外れた所見がここに表示されます</div></div>
+    <div class="legend">
+      <span><i class="sq" style="background:var(--green)"></i>経過観察でよい</span>
+      <span><i class="sq" style="background:var(--yellow)"></i>循環器で精密検査</span>
+      <span><i class="sq" style="background:var(--red)"></i>早期に循環器紹介</span>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="reset">リセット</button>
+      <button class="btn primary" id="print">印刷 / PDF</button>
+    </div>
+  </div>
 </div>
+
+<!-- wave modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="mtitle"></h3>
+    <div class="mbody" id="mbody"></div>
+    <button class="mclose" id="mclose">閉じる</button>
+  </div>
+</div>
+
+<script>
+// tri: green=経過観察 / yellow=精密検査(循環器) / red=早期〜緊急に循環器紹介
+const DATA = [
+ { layer:"① 計測値", items:[
+   { param:"心拍数", meta:"正常 60–100 bpm", findings:[
+     {name:"洞性徐脈 (<60)", dz:"生理的・薬剤性・甲状腺機能低下・洞不全", tri:"green", note:"高度(<40)や他の徐脈性所見を伴えば精密検査へ"},
+     {name:"洞性頻脈 (>100)", dz:"二次性（発熱・貧血・脱水・甲状腺亢進・心不全 等）", tri:"green", note:"原因検索が主。不規則ならリズムも確認"},
+   ]},
+   { param:"PR間隔", meta:"正常 120–200 ms", findings:[
+     {name:"PR延長 (>200)", dz:"1度房室ブロック", tri:"green", note:"単独なら経過観察。薬剤・他のブロック併存に注意"},
+     {name:"PR短縮＋デルタ波", dz:"WPW症候群（副伝導路）", tri:"yellow", note:"突然死リスク評価・頻拍精査のため循環器へ"},
+     {name:"PR短縮・デルタ波なし", dz:"LGL／生理的短縮", tri:"green", note:"頻拍発作の問診を"},
+   ]},
+   { param:"QT / QTc", meta:"正常 QTc 男<440 / 女<460 ms", findings:[
+     {name:"QTc延長 (>450/470)", dz:"QT延長症候群・薬剤性・電解質異常", tri:"yellow", note:">500 msや失神・突然死家族歴があれば早期紹介(赤相当)"},
+     {name:"QTc短縮 (<340)", dz:"QT短縮症候群・高Ca/高K", tri:"yellow", note:"電解質確認のうえ循環器評価"},
+   ]},
+ ]},
+ { layer:"②a 電気軸", items:[
+   { param:"QRS電気軸", meta:"正常 −30°〜+90°", findings:[
+     {name:"左軸偏位 (<−30°)", dz:"左脚前枝ブロック・下壁梗塞・左室肥大", tri:"green", note:"単独なら経過観察、背景所見と併せ評価"},
+     {name:"右軸偏位 (>+90°)", dz:"右室肥大・肺疾患/肺高血圧・側壁梗塞", tri:"yellow", note:"若年痩身は正常変異。右心負荷が疑わしければ精査"},
+   ]},
+ ]},
+ { layer:"②b 波形", items:[
+   { param:"P波形", meta:"正常 幅<120ms・高<2.5mm", findings:[
+     {name:"左房負荷（幅広・二峰性P）", dz:"僧帽弁疾患・左室肥大・心不全", tri:"yellow", note:"心エコーで器質的評価"},
+     {name:"右房負荷（高いP・肺性P）", dz:"肺疾患・肺高血圧・三尖弁疾患", tri:"yellow", note:"呼吸器/心エコー評価"},
+   ]},
+   { param:"QRS形態（幅）", meta:"正常 QRS<120ms", findings:[
+     {name:"完全右脚ブロック CRBBB", dz:"正常変異・右室負荷・(Brugada要確認)", tri:"green", note:"単独なら基本良性。V1-2のcoved型STは別途Brugadaを確認"},
+     {name:"不完全右脚ブロック IRBBB", dz:"正常変異（特に若年）・軽度右室負荷・ASD", tri:"green", note:"ほぼ正常変異。心雑音あればASDを想起"},
+     {name:"完全左脚ブロック CLBBB", dz:"器質的心疾患（虚血・心筋症・AS・高血圧）", tri:"yellow", note:"心エコー必須。新規出現が確実なら早期紹介(赤相当)"},
+   ]},
+   { param:"QRS形態（高さ）", meta:"肥大の指標", findings:[
+     {name:"左室肥大 LVH", dz:"高血圧・大動脈弁狭窄・肥大型心筋症", tri:"yellow", note:"心エコー・血圧評価"},
+     {name:"右室肥大 RVH", dz:"肺高血圧・肺疾患・先天性心疾患", tri:"yellow", note:"呼吸器/心エコー評価"},
+   ]},
+   { param:"Q波 / R波増高", meta:"異常Q＝幅>40ms・深さ>R1/4", findings:[
+     {name:"異常Q波（領域性）", dz:"陳旧性心筋梗塞の疑い", tri:"yellow", note:"部位:下壁II/III/aVF・前壁V1-4・側壁I/aVL/V5-6。心エコー・循環器"},
+     {name:"R波増高不良 (V1-3)", dz:"前壁梗塞既往・前壁中隔病変・(電極位置/COPD)", tri:"yellow", note:"電極位置確認のうえ心エコー"},
+   ]},
+   { param:"ST部分", meta:"正常 基線上", findings:[
+     {name:"早期再分極（凹型J点上昇・広範）", dz:"早期再分極（多くは良性変異）", tri:"green", note:"若年男性に多い。典型像なら経過観察"},
+     {name:"Brugadaパターン（V1-2 coved型ST上昇）", dz:"Brugada症候群", tri:"red", note:"無症候でも突然死リスク。失神・家族歴確認のうえ循環器へ"},
+     {name:"領域性ST上昇（凸型）", dz:"急性心筋梗塞／心膜炎 等の鑑別", tri:"red", note:"健診で領域性ST上昇は要緊急鑑別・即循環器"},
+     {name:"ST低下（水平/下降型）", dz:"心筋虚血・左室肥大ストレイン", tri:"yellow", note:"冠リスク評価・負荷検査検討で循環器"},
+   ]},
+   { param:"T波 / U波", meta:"正常 I・II・V3-6で陽性", findings:[
+     {name:"陰性T（冠性T・領域性）", dz:"虚血・心筋症・左室肥大・(脳血管)", tri:"yellow", note:"若年のV1-3陰性Tは正常変異のこともあり経過観察可"},
+     {name:"テント状T（尖鋭・高い）", dz:"高カリウム血症", tri:"red", note:"進行でP消失・QRS幅広→致死的。採血確認・原因(腎不全等)を急ぐ"},
+     {name:"平低T＋U波増高", dz:"低カリウム血症", tri:"yellow", note:"電解質補正。TdP誘発に注意"},
+   ]},
+ ]},
+ { layer:"③ リズム", items:[
+   { param:"基本調律", meta:"正常 洞調律", findings:[
+     {name:"心房細動 AF（P消失・RR絶対不整）", dz:"心房細動", tri:"yellow", note:"無症候でも塞栓リスク評価のため循環器（抗凝固の判断）"},
+     {name:"心房粗動 AFL（鋸歯状F波）", dz:"心房粗動", tri:"yellow", note:"循環器評価（抗凝固・レート/アブレーション検討）"},
+   ]},
+   { param:"期外収縮", meta:"早期収縮の有無", findings:[
+     {name:"上室期外収縮 PAC", dz:"上室期外収縮", tri:"green", note:"単発は良性。誘因(カフェイン/睡眠)確認。頻発はAFリスク評価"},
+     {name:"心室期外収縮 PVC", dz:"心室期外収縮", tri:"green", note:"単発・単形は良性。多源性/連発(R on T)/基礎心疾患疑いは精査(黄)"},
+   ]},
+   { param:"房室ブロック", meta:"P-QRSの対応", findings:[
+     {name:"2度 Mobitz I（Wenckebach）", dz:"2度房室ブロック(MobitzI)", tri:"green", note:"迷走神経/薬剤性が多く経過観察可。所見併発や進行は精査"},
+     {name:"2度 Mobitz II", dz:"2度房室ブロック(MobitzII)", tri:"red", note:"His束以下の器質的障害・進展リスク。循環器(PM想起)へ"},
+     {name:"3度 完全房室ブロック", dz:"完全房室ブロック", tri:"red", note:"P-QRS完全解離。無症候でも早期に循環器(PM検討)"},
+   ]},
+   { param:"洞機能 / その他", meta:"", findings:[
+     {name:"洞不全（高度徐脈・洞停止・徐脈頻脈）", dz:"洞不全症候群 SSS", tri:"yellow", note:"薬剤・甲状腺確認＋Holter。症状/高度なら早期紹介(赤相当)"},
+     {name:"非持続性VT（幅広QRS連発）", dz:"心室頻拍（非持続性）", tri:"red", note:"基礎心疾患精査のため循環器へ"},
+   ]},
+ ]},
+];
+
+// 各所見に対応する典型波形（path＝赤い心電図、extra＝注釈、exp＝解説）。baseline y=95
+const WAVES = {
+ "PR延長 (>200)":{path:"M10,95 Q24,82 36,95 L78,95 L84,52 L90,104 L96,95 L130,95 Q150,80 170,95 L272,95",
+   extra:`<g stroke="#c98a00" stroke-width="1.4" fill="none"><path d="M36,112 L36,118 L78,118 L78,112"/></g><text x="57" y="133" text-anchor="middle" class="wl" fill="#c98a00">PR延長(>200ms)</text>`,
+   exp:"P波から次のQRSまで（<b>PR間隔</b>）が延びますが、P波は1個ずつQRSにつながり、脱落はしません。"},
+ "PR短縮＋デルタ波":{path:"M10,95 Q24,82 36,95 L48,95 L60,80 L72,38 L80,104 L88,95 L122,95 Q146,80 170,95 L272,95",
+   extra:`<path d="M48,95 L60,80" stroke="#c98a00" stroke-width="4" fill="none"/><text x="42" y="74" class="wl" fill="#c98a00">デルタ波</text>`,
+   exp:"PRが<b>短く</b>、QRSの立ち上がりがなだらかに始まる（<b>デルタ波</b>）。副伝導路を通る早期興奮のサインです。"},
+ "QTc延長 (>450/470)":{path:"M10,95 Q24,82 36,95 L46,95 L52,52 L58,104 L64,95 L140,95 Q175,72 210,95 L272,95",
+   extra:`<g stroke="#c98a00" stroke-width="1.4" fill="none"><path d="M52,116 L52,122 L210,122 L210,116"/></g><text x="131" y="136" text-anchor="middle" class="wl" fill="#c98a00">QT延長</text>`,
+   exp:"QRSの始まりからT波の終わりまで（<b>QT</b>）が長く、T波が右に離れて見えます。心室不整脈のリスクと関連します。"},
+ "左房負荷（幅広・二峰性P）":{path:"M10,95 Q20,80 30,86 Q40,80 52,95 L80,95 L86,55 L92,104 L98,95 L130,95 Q150,84 170,95 L272,95",
+   extra:`<text x="31" y="70" text-anchor="middle" class="wl" fill="#2563a8">二峰性・幅広P</text>`,
+   exp:"P波が<b>幅広く二峰性</b>（ふたコブ）になります。左房の拡大・負荷を示します。"},
+ "右房負荷（高いP・肺性P）":{path:"M10,95 L28,55 L40,95 L70,95 L76,58 L82,104 L88,95 L120,95 Q140,84 160,95 L272,95",
+   extra:`<text x="34" y="48" text-anchor="middle" class="wl" fill="#2563a8">高く尖ったP（肺性P）</text>`,
+   exp:"P波が<b>高く尖る</b>（肺性P）。右房の負荷・肺疾患を示します。"},
+ "完全右脚ブロック CRBBB":{path:"M10,95 L36,95 L41,74 L47,95 L57,45 L67,95 L74,93 L82,95 L120,95 Q145,107 170,95 L272,95",
+   extra:`<text x="55" y="38" text-anchor="middle" class="wl" fill="#2563a8">rSR'（M型）</text><g stroke="#5d6b7a" stroke-width="1.3" fill="none"><path d="M36,116 L36,122 L82,122 L82,116"/></g><text x="59" y="135" text-anchor="middle" class="wl">QRS幅広(≧120ms)</text>`,
+   exp:"V1で<b>rSR'（M型）</b>、QRSが幅広。右脚の伝導が遅れる所見。単独ならほぼ良性です。"},
+ "不完全右脚ブロック IRBBB":{path:"M10,95 L40,95 L44,76 L48,95 L55,50 L62,95 L68,93 L74,95 L110,95 Q140,107 170,95 L272,95",
+   extra:`<text x="55" y="40" text-anchor="middle" class="wl" fill="#2563a8">rSR'（軽度）</text><text x="59" y="135" text-anchor="middle" class="wl">QRS 110–120ms</text>`,
+   exp:"CRBBBと同じM型だがQRS幅が軽度（110–120ms）。<b>正常変異</b>のことが多い所見です。"},
+ "完全左脚ブロック CLBBB":{path:"M10,95 L34,95 L46,48 L54,60 L60,46 L74,95 L78,93 L84,95 L120,95 Q145,112 170,98 L272,95",
+   extra:`<text x="56" y="38" text-anchor="middle" class="wl" fill="#2563a8">幅広・ノッチを伴うR</text><g stroke="#5d6b7a" stroke-width="1.3" fill="none"><path d="M34,116 L34,122 L84,122 L84,116"/></g><text x="59" y="135" text-anchor="middle" class="wl">QRS幅広</text>`,
+   exp:"側壁誘導で<b>幅広くノッチを伴うR波</b>。器質的心疾患を伴いやすく、心エコーが必要です。"},
+ "左室肥大 LVH":{path:"M10,95 L36,95 L44,22 L54,132 L62,95 L92,95 Q112,110 132,95 L272,95",
+   extra:`<text x="44" y="18" text-anchor="middle" class="wl" fill="#2563a8">高いR</text><text x="58" y="146" text-anchor="middle" class="wl" fill="#2563a8">深いS</text>`,
+   exp:"R波が高く・S波が深い（<b>高電位</b>）。高血圧や弁膜症による左室肥大を示します。"},
+ "右室肥大 RVH":{path:"M10,95 L36,95 L44,40 L54,108 L62,95 L92,95 Q112,108 132,95 L272,95",
+   extra:`<text x="44" y="33" text-anchor="middle" class="wl" fill="#2563a8">V1で高いR (R/S>1)</text>`,
+   exp:"V1で<b>R波が高い</b>（R/S>1）・右軸偏位を伴う。肺高血圧・右心負荷を示します。"},
+ "異常Q波（領域性）":{path:"M10,95 Q24,84 36,95 L48,95 L52,124 L60,124 L64,50 L72,100 L78,95 L112,95 Q138,108 164,95 L272,95",
+   extra:`<text x="56" y="140" text-anchor="middle" class="wl" fill="#2563a8">幅広・深いQ波</text>`,
+   exp:"QRSの最初に<b>幅広く深いQ波</b>。隣り合う誘導に出れば陳旧性梗塞（壊死）を疑います。"},
+ "早期再分極（凹型J点上昇・広範）":{path:"M10,95 L40,95 L48,50 L55,80 L60,78 L66,80 Q90,68 110,78 Q126,55 142,78 L272,95",
+   extra:`<circle cx="60" cy="79" r="4.5" fill="none" stroke="#1f9d57" stroke-width="1.6"/><text x="60" y="118" text-anchor="middle" class="wl" fill="#1f9d57">J点ノッチ/スラー</text><text x="150" y="60" class="wl" fill="#1f9d57">concave ST↑</text>`,
+   exp:"<b>J点</b>にノッチ／スラーがあり、ST部分が<b>凹型（concave）</b>に持ち上がる。多くは良性の変異です。"},
+ "Brugadaパターン（V1-2 coved型ST上昇）":{path:"M10,95 L40,95 L48,46 L54,58 C66,52 78,82 92,104 Q104,116 116,104 L140,98 L272,95",
+   extra:`<circle cx="54" cy="58" r="4.5" fill="none" stroke="#d23b3b" stroke-width="1.8"/><text x="54" y="40" text-anchor="middle" class="wl" fill="#d23b3b">J点上昇</text><text x="96" y="130" text-anchor="middle" class="wl" fill="#d23b3b">coved型ST→陰性T</text>`,
+   exp:"V1–V2で<b>J点が上昇</b>し、STが<b>入江状（coved型）</b>に下り坂を描いて<b>陰性T</b>へつながる。無症候でも突然死リスクがあり循環器へ。"},
+ "領域性ST上昇（凸型）":{path:"M10,95 L40,95 L48,46 C60,40 86,44 104,74 Q116,90 128,95 L272,95",
+   extra:`<text x="84" y="38" text-anchor="middle" class="wl" fill="#d23b3b">凸型(tombstone)ST上昇</text>`,
+   exp:"STが<b>凸型（上に盛り上がる）</b>に上昇しT波と一体化（tombstone）。急性心筋梗塞を強く疑う緊急所見です。"},
+ "ST低下（水平/下降型）":{path:"M10,95 L40,95 L48,58 L56,95 L64,106 L96,106 Q112,99 128,92 L272,95",
+   extra:`<path d="M64,106 L96,106" stroke="#c98a00" stroke-width="3" fill="none"/><text x="80" y="124" text-anchor="middle" class="wl" fill="#c98a00">水平型ST低下</text>`,
+   exp:"ST部分が基線より<b>下がる（水平〜下降型）</b>。心筋虚血や左室肥大のストレインを示します。"},
+ "陰性T（冠性T・領域性）":{path:"M10,95 L40,95 L48,52 L56,108 L62,95 L78,95 Q100,128 122,95 L272,95",
+   extra:`<text x="100" y="142" text-anchor="middle" class="wl" fill="#c98a00">左右対称の陰性T（冠性T）</text>`,
+   exp:"T波が<b>左右対称に深く陰性</b>（冠性T）。虚血や心筋症などを示します。"},
+ "テント状T（尖鋭・高い）":{path:"M10,95 L40,95 L48,58 L56,108 L62,95 L84,95 L96,40 L108,95 L272,95",
+   extra:`<text x="96" y="32" text-anchor="middle" class="wl" fill="#d23b3b">尖鋭・テント状T</text>`,
+   exp:"T波が<b>幅狭く尖って高い</b>（テント状）。高カリウム血症のサイン。進行すると致死的です。"},
+ "平低T＋U波増高":{path:"M10,95 L40,95 L48,58 L56,108 L62,95 L80,95 Q96,90 112,95 L124,95 Q138,80 152,95 L272,95",
+   extra:`<text x="96" y="82" text-anchor="middle" class="wl" fill="#c98a00">平低T</text><text x="138" y="72" text-anchor="middle" class="wl" fill="#c98a00">U波</text>`,
+   exp:"T波が<b>平たく低く</b>なり、その後に<b>U波</b>が目立つ。低カリウム血症のサインです。"},
+ "心房細動 AF（P消失・RR絶対不整）":{path:"M10,93 Q18,89 26,94 Q34,98 42,93 L50,55 L56,104 L62,93 Q72,89 82,95 Q92,99 102,93 Q110,90 118,95 L150,55 L156,104 L162,93 Q172,90 182,95 Q192,98 202,93 L226,55 L232,104 L238,93 Q250,90 262,94",
+   extra:`<text x="140" y="124" text-anchor="middle" class="wl" fill="#2563a8">P波なし・基線が細かく揺れる・間隔バラバラ</text>`,
+   exp:"<b>P波がなく</b>、基線が細かく揺れ、QRSの間隔（RR）が<b>バラバラ</b>。心房細動の特徴です。"},
+ "心房粗動 AFL（鋸歯状F波）":{path:"M10,95 L24,72 L28,95 L40,72 L44,95 L56,72 L60,95 L66,52 L74,104 L80,95 L92,72 L96,95 L108,72 L112,95 L124,72 L128,95 L134,52 L142,104 L148,95 L160,72 L164,95 L176,72 L180,95 L192,72 L196,95 L202,52 L210,104 L216,95 L272,95",
+   extra:`<text x="140" y="120" text-anchor="middle" class="wl" fill="#2563a8">鋸歯状（のこぎり歯）のF波</text>`,
+   exp:"基線が<b>のこぎり歯状（F波）</b>に規則正しく波打ちます。心房粗動の特徴です。"},
+ "上室期外収縮 PAC":{path:"M10,95 Q22,84 34,95 L40,95 L46,52 L52,104 L58,95 L86,95 Q98,84 110,95 L116,95 L122,52 L128,104 L134,95 Q150,82 160,90 L166,95 L172,55 L178,104 L184,95 L230,95",
+   extra:`<circle cx="155" cy="86" r="5" fill="none" stroke="#c98a00" stroke-width="1.6"/><text x="156" y="74" text-anchor="middle" class="wl" fill="#c98a00">早期のP'</text>`,
+   exp:"予定より<b>早いタイミング</b>で、形のちがうP波を伴う収縮が出ます。QRSは正常幅。多くは良性です。"},
+ "心室期外収縮 PVC":{path:"M10,95 Q22,84 34,95 L40,95 L46,52 L52,104 L58,95 L70,95 L80,62 L96,128 L110,80 L120,95 L168,95 Q180,84 192,95 L198,95 L204,52 L210,104 L216,95 L262,95",
+   extra:`<text x="98" y="146" text-anchor="middle" class="wl" fill="#2563a8">先行Pなし・幅広い異常QRS</text>`,
+   exp:"<b>P波を伴わず</b>、幅広く形の崩れたQRSが早期に出て、その後に休止。単発・単形なら良性です。"},
+ "2度 Mobitz I（Wenckebach）":{path:"M10,95 Q18,86 26,95 L40,60 L46,100 L52,95 Q72,86 80,95 L98,60 L104,100 L110,95 Q132,86 140,95 L162,60 L168,100 L174,95 Q200,86 208,95 L262,95",
+   extra:`<text x="33" y="116" class="wl" fill="#c98a00">PR</text><text x="86" y="116" class="wl" fill="#c98a00">PR↑</text><text x="146" y="116" class="wl" fill="#c98a00">PR↑↑</text><text x="208" y="78" text-anchor="middle" class="wl" fill="#d23b3b">QRS脱落</text>`,
+   exp:"PR間隔が<b>1拍ごとに少しずつ延び</b>、ついにQRSが1個<b>脱落</b>。多くは経過観察可です。"},
+ "2度 Mobitz II":{path:"M10,95 Q18,86 26,95 L36,60 L42,100 L48,95 Q72,86 80,95 L90,60 L96,100 L102,95 Q132,86 140,95 Q196,86 204,95 L214,60 L220,100 L226,95 L262,95",
+   extra:`<text x="40" y="116" class="wl" fill="#5d6b7a">PR一定</text><text x="166" y="78" text-anchor="middle" class="wl" fill="#d23b3b">突然QRS脱落</text>`,
+   exp:"PR間隔は<b>一定</b>のまま、前ぶれなく<b>突然QRSが脱落</b>。進行リスクが高く循環器へ。"},
+ "3度 完全房室ブロック":{path:"M10,95 Q18,86 26,95 Q44,86 52,95 Q70,86 78,95 Q96,86 104,95 Q122,86 130,95 Q148,86 156,95 Q174,86 182,95 Q200,86 208,95 Q226,86 234,95 Q252,86 260,95",
+   extra:`<path d="M30,95 L40,55 L48,106 L54,95 M150,95 L160,55 L168,106 L174,95" class="wp"/><text x="140" y="124" text-anchor="middle" class="wl" fill="#2563a8">P（規則・速い）とQRS（遅い）が無関係</text>`,
+   exp:"P波（小さな波・規則的）とQRS（とがった波・ゆっくり）が<b>互いに無関係</b>に出る（完全解離）。"},
+ "非持続性VT（幅広QRS連発）":{path:"M10,95 L34,95 L44,60 L58,126 L72,72 L84,95 L92,60 L106,126 L120,72 L132,95 L140,60 L154,126 L168,72 L180,95 L204,95 Q220,86 232,95 L262,95",
+   extra:`<text x="110" y="146" text-anchor="middle" class="wl" fill="#d23b3b">幅広QRSの連発（≥3連）</text>`,
+   exp:"<b>幅広いQRS</b>が3連以上つづけて出る短い発作。基礎心疾患の精査が必要です。"},
+};
+
+const TRI_RANK={green:1,yellow:2,red:3};
+const BANNER={
+ 0:{cls:"lv0",txt:"所見を選択してください"},
+ 1:{cls:"lv1",txt:"🟢 緊急性は低い — 経過観察でよい所見です"},
+ 2:{cls:"lv2",txt:"🟡 循環器で精密検査を推奨します"},
+ 3:{cls:"lv3",txt:"🔴 早期に循環器紹介を推奨します"},
+};
+
+const form=document.getElementById('form');
+const state={}; // key -> finding obj or 'normal'
+
+DATA.forEach((sec,si)=>{
+  const lt=document.createElement('div');
+  lt.className='layer-title'; lt.textContent=sec.layer; form.appendChild(lt);
+  sec.items.forEach((it,ii)=>{
+    const key=si+'-'+ii;
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<div class="pname">${it.param}</div><div class="meta">${it.meta||''}</div>`;
+    const opts=document.createElement('div'); opts.className='opts';
+    const nb=document.createElement('div'); nb.className='opt normal on';
+    nb.innerHTML='<span class="dot">●</span>正常';
+    nb.onclick=()=>select(key,'normal',opts,nb);
+    opts.appendChild(nb);
+    it.findings.forEach(f=>{
+      const b=document.createElement('div'); b.className='opt';
+      b.textContent=f.name;
+      b.onclick=()=>select(key,f,opts,b);
+      opts.appendChild(b);
+    });
+    row.appendChild(opts); form.appendChild(row);
+    state[key]='normal';
+  });
+});
+
+function select(key,val,opts,btn){
+  state[key]=val;
+  [...opts.children].forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+function render(){
+  const flagged=Object.values(state).filter(v=>v&&v!=='normal');
+  const list=document.getElementById('list');
+  const banner=document.getElementById('banner');
+  if(!flagged.length){
+    list.innerHTML='<div class="empty">正常範囲を外れた所見がここに表示されます</div>';
+    banner.className='lv0'; banner.textContent=BANNER[0].txt; return;
+  }
+  flagged.sort((a,b)=>TRI_RANK[b.tri]-TRI_RANK[a.tri]);
+  const max=Math.max(...flagged.map(f=>TRI_RANK[f.tri]));
+  banner.className=BANNER[max].cls; banner.textContent=BANNER[max].txt;
+  list.innerHTML=flagged.map(f=>{
+    const lab={green:"経過観察",yellow:"精密検査",red:"早期紹介"}[f.tri];
+    const wbtn=WAVES[f.name]?`<button class="wavebtn" data-w="${encodeURIComponent(f.name)}">📈 波形を見る</button>`:'';
+    return `<div class="card ${f.tri}">
+      <div class="cf">${f.name}<span class="pill ${f.tri}">${lab}</span></div>
+      <div class="dz">示唆される疾患：<b>${f.dz}</b></div>
+      ${f.note?`<div class="note">${f.note}</div>`:''}
+      ${wbtn}
+    </div>`;
+  }).join('');
+}
+
+// wave modal
+const overlay=document.getElementById('overlay');
+function waveSVG(w){
+  return `<svg viewBox="0 0 280 150" class="wavesvg" xmlns="http://www.w3.org/2000/svg">
+    <defs><pattern id="grid" width="14" height="14" patternUnits="userSpaceOnUse">
+      <path d="M14,0 L0,0 0,14" fill="none" stroke="#f6e3e3" stroke-width="0.6"/></pattern></defs>
+    <rect width="280" height="150" fill="url(#grid)"/>
+    <line class="bl" x1="8" y1="95" x2="272" y2="95"/>
+    <path class="wp" d="${w.path}"/>${w.extra||''}</svg>`;
+}
+function openWave(name){
+  const w=WAVES[name]; if(!w) return;
+  document.getElementById('mtitle').textContent=name;
+  document.getElementById('mbody').innerHTML=waveSVG(w)+`<div class="wave-exp">${w.exp}</div>`;
+  overlay.classList.add('on');
+}
+document.getElementById('list').addEventListener('click',e=>{
+  const b=e.target.closest('.wavebtn'); if(b) openWave(decodeURIComponent(b.dataset.w));
+});
+document.getElementById('mclose').onclick=()=>overlay.classList.remove('on');
+overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.classList.remove('on'); });
+
+document.getElementById('reset').onclick=()=>{
+  document.querySelectorAll('.opts').forEach(opts=>{
+    [...opts.children].forEach(c=>c.classList.remove('on'));
+    opts.children[0].classList.add('on');
+  });
+  Object.keys(state).forEach(k=>state[k]='normal');
+  render();
+};
+document.getElementById('print').onclick=()=>window.print();
+render();
+</script>
 </body>
 </html>
