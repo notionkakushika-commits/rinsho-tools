@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>血尿ナビ｜健診の顕微鏡的血尿（エビデンス版）</title>
+<style>
+ :root{
+  --bg:#eef1f4; --screen:#f7f9fb; --card:#ffffff; --ink:#1f2a33; --sub:#5b6b78;
+  --line:#e2e8ee; --accent:#0f8a9c; --accent-d:#0b6b78; --accent-bg:#e8f5f7;
+  --kidney:#1d6fb8; --kidney-bg:#e9f1fb;
+  --uro:#b8631d; --uro-bg:#fbf0e7;
+  --green:#5a7d2a; --green-bg:#eef5e3;
+  --gray:#6b7886; --gray-bg:#eef2f5;
+  --red:#c0392b;
+  --ev:#33414d; --ev-bg:#f3f6f8;
+  --shadow:0 1px 3px rgba(20,40,60,.06),0 8px 24px rgba(20,40,60,.08);
+ }
+ *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+ body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.65;display:flex;justify-content:center;padding:18px 12px}
+ .phone{width:100%;max-width:430px;background:var(--screen);border-radius:32px;
+  box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line);
+  min-height:820px;display:flex;flex-direction:column}
+ .bar{background:var(--card);border-bottom:1px solid var(--line);padding:17px 20px 15px;
+  display:flex;align-items:center;gap:11px;position:sticky;top:0;z-index:5}
+ .bar .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+ .bar .ttl{font-weight:800;font-size:18px}
+ .bar .ttl small{display:block;font-weight:500;font-size:12.5px;color:var(--sub);margin-top:1px}
+ .bar .home{margin-left:auto;border:0;background:var(--gray-bg);color:var(--sub);
+  font-size:13.5px;font-weight:700;border-radius:10px;padding:9px 13px;cursor:pointer}
+
+ /* app tabs */
+ .tabs{display:flex;gap:8px;padding:14px 20px 0}
+ .tabs button{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:13px;
+  padding:12px 8px;font:inherit;font-weight:700;font-size:14.5px;color:var(--sub);cursor:pointer;transition:.12s}
+ .tabs button small{display:block;font-weight:500;font-size:11.5px;margin-top:2px;color:var(--sub)}
+ .tabs button.on{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-d)}
+ .tabs button.on small{color:var(--accent-d)}
+
+ .steps{display:flex;gap:7px;padding:14px 20px 0}
+ .steps .s{flex:1;height:7px;border-radius:4px;background:#dde4ea}
+ .steps .s.on{background:var(--accent)} .steps .s.done{background:#9ecdd4}
+ .screen{padding:18px 20px 24px;flex:1}
+
+ .qno{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.03em;color:var(--accent-d);
+  background:var(--accent-bg);padding:5px 12px;border-radius:13px;margin-bottom:13px}
+ .qq{font-size:23px;font-weight:800;margin:0 0 8px;line-height:1.4}
+ .qhint{color:var(--sub);font-size:15px;margin:0 0 18px}
+
+ .opts{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+ .opt{display:flex;gap:13px;align-items:center;text-align:left;width:100%;border:1.5px solid var(--line);
+  background:var(--card);border-radius:16px;padding:18px 16px;cursor:pointer;font:inherit;color:var(--ink);
+  transition:.12s;box-shadow:0 1px 2px rgba(20,40,60,.04)}
+ .opt:active{transform:scale(.985)} .opt:hover{border-color:var(--accent)}
+ .opt .yn{flex:none;font-size:13px;font-weight:800;border-radius:10px;padding:8px 10px;min-width:54px;text-align:center}
+ .yn.y{background:#fdecea;color:var(--red)} .yn.n{background:var(--green-bg);color:var(--green)} .yn.q{background:var(--gray-bg);color:var(--gray)}
+ .opt .ot{font-size:17px;font-weight:700;line-height:1.4} .opt .od{font-size:13.5px;color:var(--sub);font-weight:500;margin-top:3px}
+ .opt .arr{margin-left:auto;color:var(--accent);font-weight:800;font-size:22px;flex:none}
+
+ .banner{border-radius:18px;padding:20px;color:#fff;margin-bottom:16px}
+ .banner.end{background:var(--gray)} .banner.recheck{background:var(--accent)}
+ .banner.kidney{background:var(--kidney)} .banner.uro{background:var(--uro)} .banner.watch{background:var(--green)}
+ .banner .bk{font-size:13px;font-weight:700;opacity:.92}
+ .banner .bm{font-size:27px;font-weight:800;margin-top:4px;line-height:1.3}
+ .banner .bs{font-size:14px;margin-top:7px;opacity:.95}
+
+ .todo h3{font-size:14.5px;margin:0 0 10px;color:var(--accent-d)}
+ .todo ul{margin:0 0 18px;padding:0;list-style:none}
+ .todo li{position:relative;padding:11px 13px 11px 30px;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;margin-bottom:9px;font-size:15px;line-height:1.5}
+ .todo li::before{content:"▸";position:absolute;left:12px;top:11px;color:var(--accent);font-weight:800}
+ .todo li b{font-weight:800}
+
+ .evp{background:var(--ev-bg);border:1px solid #dbe2e8;border-radius:14px;padding:15px 16px}
+ .evp .eh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ev);margin-bottom:11px}
+ .evp .eh::before{content:"EVIDENCE";font-size:10.5px;font-weight:800;letter-spacing:.08em;
+  color:#fff;background:var(--ev);padding:3px 8px;border-radius:7px}
+ .evrow{padding:9px 0;border-top:1px solid #e4eaef}
+ .evrow:first-of-type{border-top:0;padding-top:2px}
+ .evrow .k{font-size:13px;color:var(--sub);font-weight:700}
+ .evrow .v{font-size:15.5px;color:var(--ink);font-weight:500;line-height:1.5}
+ .evrow .v b{font-weight:800}
+ .evrow .v .num{font-weight:800;color:var(--ev);font-variant-numeric:tabular-nums}
+ .evsrc{margin-top:11px;padding-top:10px;border-top:1px dashed #d3dbe2;font-size:12px;color:var(--accent-d);font-weight:700}
+
+ /* 検査ページ */
+ .tlead{font-size:14.5px;color:var(--sub);margin:0 0 16px}
+ .tcat{font-size:12.5px;font-weight:800;color:var(--accent-d);letter-spacing:.03em;margin:18px 0 9px}
+ .tcat:first-child{margin-top:2px}
+ .titem{border:1.5px solid var(--line);background:var(--card);border-radius:14px;margin-bottom:11px;overflow:hidden}
+ .titem.skip{border-color:#e6cdc8;background:#fdf6f5}
+ .thead{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:transparent;
+  font:inherit;color:var(--ink);padding:16px 16px;cursor:pointer}
+ .thead .tn{font-size:17px;font-weight:800}
+ .thead .tdet{font-size:13px;color:var(--sub);font-weight:500;margin-top:2px}
+ .thead .chev{margin-left:auto;color:var(--accent);font-weight:800;font-size:20px;transition:.15s;flex:none}
+ .titem.open .chev{transform:rotate(90deg)}
+ .tbody{display:none;padding:0 16px 16px}
+ .titem.open .tbody{display:block}
+ .who{background:var(--accent-bg);border:1px solid #bfe2e6;border-radius:11px;padding:12px 14px;margin-bottom:12px}
+ .who .wl{font-size:11.5px;font-weight:800;color:var(--accent-d);letter-spacing:.04em;margin-bottom:4px}
+ .who .wv{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.5}
+ .skip .who{background:#fbeae8;border-color:#eecac4}
+ .skip .who .wl,.skip .who .wv{color:#a23a2e}
+
+ .footbtns{display:flex;gap:11px;padding:0 20px 22px}
+ .fb{flex:1;border:0;border-radius:14px;padding:16px;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+ .fb.back{background:var(--gray-bg);color:var(--sub)} .fb.again{background:var(--ink);color:#fff}
+ .hideb{display:none}
+ .disc{font-size:11.5px;color:var(--sub);text-align:center;padding:0 24px 18px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone">
+ <div class="bar">
+  <span class="dot"></span>
+  <span class="ttl">血尿ナビ<small>健診の顕微鏡的血尿・エビデンス版</small></span>
+  <button class="home" id="home">最初から</button>
+ </div>
+
+ <div class="tabs" id="tabs">
+  <button data-tab="flow" class="on">フローで見る<small>患者から振り分け</small></button>
+  <button data-tab="test">検査で見る<small>検査ごとの根拠・対象</small></button>
+ </div>
+
+ <!-- フロー -->
+ <div id="flowmode">
+  <div class="steps" id="steps"></div>
+  <div class="screen" id="screen"></div>
+  <div class="footbtns">
+   <button class="fb back hideb" id="back">← 戻る</button>
+   <button class="fb again hideb" id="again">もう一度</button>
+  </div>
+ </div>
+
+ <!-- 検査 -->
+ <div id="testmode" style="display:none">
+  <div class="screen" id="testscreen"></div>
+ </div>
+
+ <p class="disc">数値・基準はガイドライン等に基づく再構成（要・原著確認）。最終判断は医師が行ってください。</p>
+</div>
+
+<script>
+"use strict";
+
+/* ===== フロー：決定木 ===== */
+const NODES={
+ m_confirm:{ step:1, type:"q", qno:"STEP 1 ・ 確定",
+  q:"尿沈渣で赤血球を確認できたか", hint:"試験紙の潜血だけでは確定しない。沈渣で赤血球を見る。",
+  opts:[
+   {yn:"q", t:"試験紙だけ陽性（沈渣未確認 / RBCなし）", d:"偽陽性を先に除外", to:"r_falsepos"},
+   {yn:"y", t:"沈渣で赤血球 ≥5/HPF を確認", d:"真の血尿として確定", to:"m_transient"}
+  ],
+  ev:{ title:"確定の基準と頻度", rows:[
+   ["顕微鏡的血尿の定義", "沈渣RBC <span class='num'>≥5</span>/HPF（無遠心 <span class='num'>≥20</span>/μL）｜AUA <span class='num'>≥3</span>/HPF"],
+   ["健診 尿潜血(試験紙)陽性率", "<span class='num'>約5〜10%</span>（集団・定義で幅）"],
+   ["試験紙の偽陽性", "ミオグロビン尿・ヘモグロビン尿・酸化剤・アルカリ尿 pH>9・精子混入"]
+  ], src:"日本・血尿診断GL2023解説／油野ほか"}},
+
+ m_transient:{ step:2, type:"q", qno:"STEP 2 ・ 一過性の除外",
+  q:"一過性の誘因はあるか", hint:"月経中／激しい運動の直後／性交後／症状のある尿路感染中。",
+  opts:[
+   {yn:"q", t:"誘因がある", d:"外して2〜4週後に再検へ", to:"r_recheck"},
+   {yn:"n", t:"誘因はない", d:"病型の評価へ", to:"m_glom"}
+  ],
+  ev:{ title:"一過性血尿の頻度・経過", rows:[
+   ["自然消失率", "<span class='num'>32〜85%</span>（報告で幅）"],
+   ["運動後血尿", "<span class='num'>24〜48時間</span>で消失するのが典型"],
+   ["注意", "異常なし群より <b>CKD発症リスクは有意に高い</b>（放置しない）"]
+  ], src:"長屋(GL2013)／坂本"}},
+
+ m_glom:{ step:3, type:"q", qno:"STEP 3 ・ 腎性（糸球体性）の評価",
+  q:"糸球体性・腎性の所見はあるか", hint:"蛋白尿合併／変形赤血球・赤血球円柱／cola様尿／eGFR低下。",
+  opts:[
+   {yn:"y", t:"ある（いずれか）", d:"腎臓内科へ", to:"r_kidney"},
+   {yn:"n", t:"ない", d:"がんリスクの評価へ", to:"m_risk"}
+  ],
+  ev:{ title:"腎臓内科 紹介の基準", rows:[
+   ["紹介の目安", "蛋白尿 <span class='num'>≥0.5</span> g/gCr／血尿＋蛋白尿／変形RBC・円柱／eGFR低下"],
+   ["eGFR 年齢補正（低下の目安）", "&lt;40歳:<span class='num'>&lt;60</span>／40〜70歳:<span class='num'>&lt;50</span>／70歳〜:<span class='num'>&lt;40</span> <span style='font-weight:600;color:var(--sub)'>mL/分/1.73㎡</span>"],
+   ["留意", "蛋白尿なしでもIgA腎症・菲薄基底膜病はあり得る"]
+  ], src:"永井／栗原／梅田"}},
+
+ m_risk:{ step:4, type:"q", qno:"STEP 4 ・ 尿路上皮癌リスク（AUA/SUFU 2020）",
+  q:"中・高リスクに当てはまるか", hint:"年齢・性別・喫煙・沈渣RBC数・肉眼的血尿歴の「最も高い区分」を採用。",
+  opts:[
+   {yn:"y", t:"当てはまる（中・高リスク）", d:"泌尿器科へ", to:"r_uro"},
+   {yn:"n", t:"当てはまらない（低リスク）", d:"無症候・蛋白尿なし → 経過観察", to:"r_watch"}
+  ],
+  ev:{ title:"リスク別の膀胱癌 発見率と区分", rows:[
+   ["膀胱癌 発見率", "低 <span class='num'>&lt;1%</span>／中 <span class='num'>1〜2%</span>／高 <span class='num'>約6.3%</span>"],
+   ["低リスク", "男&lt;40 かつ 女&lt;50・非/軽喫煙(&lt;10py)・RBC 3〜10・肉眼歴なし"],
+   ["中リスク", "男40〜59 or 女50〜59・喫煙10〜30py・RBC 11〜25・リスク1つ以上"],
+   ["高リスク", "≥60歳・喫煙&gt;30py・RBC&gt;25・肉眼的血尿歴"],
+   ["（対比）肉眼的血尿の悪性率", "<span class='num'>10〜20%</span>と高い"]
+  ], src:"AUA/SUFU 2020／松本"}},
+
+ r_falsepos:{ step:5, type:"r", cls:"end", bk:"確定の前に", bm:"まず偽陽性を除外", bs:"本物の血尿か確かめてから先へ。",
+  todo:["尿沈渣で<b>赤血球を確認</b>","RBCなければ <b>CK・LDH/ハプトグロビン・尿pH</b> 等で鑑別","原因が明確なら<b>血尿ではない＝終了</b>"],
+  ev:{ title:"偽陽性の鑑別", rows:[
+   ["ミオグロビン尿", "CK著明高値・横紋筋融解"],
+   ["ヘモグロビン尿", "血管内溶血（LDH↑・ハプトグロビン↓）"],
+   ["その他", "酸化剤・アルカリ尿 pH>9・精子混入／偽陰性=VC"]
+  ], src:"油野ほか"}},
+
+ r_recheck:{ step:5, type:"r", cls:"recheck", bk:"いったん再検", bm:"誘因を外して尿を再検", bs:"一過性なら消失。持続なら次の評価へ。",
+  todo:["<b>誘因を除去</b>：月経→終了後／運動→安静後／感染→治療後","<b>2〜4週後に尿沈渣を再検</b>","陰性=一過性で終了／持続=STEP 3へ"],
+  ev:{ title:"再検の根拠", rows:[
+   ["自然消失率", "<span class='num'>32〜85%</span>（再検で陰性化しうる）"],
+   ["運動後血尿", "<span class='num'>24〜48時間</span>で消失"],
+   ["注意", "誘因下の検体で「持続」と早合点しない"]
+  ], src:"長屋／内科外来マニュアル"}},
+
+ r_kidney:{ step:5, type:"r", cls:"kidney", bk:"振り分け", bm:"腎臓内科へ紹介", bs:"糸球体性（腎臓そのもの）が疑われる。",
+  todo:["<b>添付検査</b>：尿沈渣(形態・円柱)・尿蛋白/Cr・血清Cr/eGFR","必要に応じ <b>補体・ANCA・抗GBM</b>","紹介状を書いて腎臓内科へ（終了）"],
+  ev:{ title:"糸球体性の指標", rows:[
+   ["紹介の目安", "蛋白尿 <span class='num'>≥0.5</span> g/gCr／血尿＋蛋白尿／eGFR低下"],
+   ["想定疾患（高頻度）", "IgA腎症・菲薄基底膜病"]
+  ], src:"永井／栗原／梅田"}},
+
+ r_uro:{ step:5, type:"r", cls:"uro", bk:"振り分け", bm:"泌尿器科へ紹介", bs:"尿路上皮癌のスクリーニングを優先。",
+  todo:["<b>中リスク</b>：膀胱鏡 ＋ 腎膀胱超音波","<b>高リスク</b>：膀胱鏡 ＋ CT urography ＋ 尿細胞診","紹介状を書いて泌尿器科へ（終了）"],
+  ev:{ title:"泌尿器精査の数値", rows:[
+   ["膀胱癌 発見率", "中 <span class='num'>1〜2%</span>／高 <span class='num'>約6.3%</span>"],
+   ["膀胱鏡 感度", "<span class='num'>約98%</span>（標準）"],
+   ["尿細胞診", "low gradeで感度低く陰性でも否定不可"]
+  ], src:"松本／AUA 2020"}},
+
+ r_watch:{ step:5, type:"r", cls:"watch", bk:"振り分け", bm:"内科で経過観察", bs:"低リスク・無症候・蛋白尿なし。負担の軽い検査から。",
+  todo:["一度 <b>腹部超音波</b>（<b>尿細胞診は任意</b>・陰性でも否定不可）","定期尿検査：1年は <b>3か月毎</b>、以後 <b>年1〜2回</b>","<b>2年連続陰性で終了の目安</b>。肉眼的血尿・蛋白尿が出たら再評価"],
+  ev:{ title:"経過観察の根拠と限界", rows:[
+   ["膀胱癌 発見率（低リスク）", "<span class='num'>&lt;1%</span>"],
+   ["フォロー間隔", "1年は<span class='num'>3か月毎</span>→以後<span class='num'>年1〜2回</span>／<span class='num'>2年</span>連続陰性で終了目安"],
+   ["腹部超音波の限界", "腎癌・尿路上皮癌の感度は低い（陰性でも否定不可）"],
+   ["細胞診", "低リスクでルーチン不要（出すなら任意・過信しない）"]
+  ], src:"長屋(GL2013)／坂本／河本"}}
+};
+
+/* ===== 検査カタログ ===== */
+const TESTS=[
+ {cat:"全例・基本", items:[
+  {n:"尿沈渣", det:"赤血球の有無・形態・赤血球円柱を見る",
+   who:"尿潜血を指摘された全例（試験紙陽性は必ず沈渣で確定）",
+   rows:[["確定基準","沈渣RBC <span class='num'>≥5</span>/HPF（AUA <span class='num'>≥3</span>）"],
+         ["糸球体性の所見","変形RBC <span class='num'>≥30%</span>・有棘 <span class='num'>≥5%</span>・赤血球円柱"]],
+   src:"GL2023／油野"},
+  {n:"尿蛋白（尿蛋白/Cr比）", det:"蛋白尿の合併＝糸球体性・腎予後を見る",
+   who:"確定した血尿は全例で評価",
+   rows:[["紹介の目安","<span class='num'>≥0.5</span> g/gCr or 血尿＋蛋白尿 → 腎臓内科"]],
+   src:"永井／栗原"},
+  {n:"血清Cr・eGFR", det:"腎機能を見る",
+   who:"確定例。特に蛋白尿・糸球体所見・急速な経過のある人",
+   rows:[["eGFR 年齢補正の目安","&lt;40歳:<span class='num'>&lt;60</span>／40〜70歳:<span class='num'>&lt;50</span>／70歳〜:<span class='num'>&lt;40</span> <span style='font-weight:600;color:var(--sub)'>mL/分/1.73㎡</span>"],
+         ["血清Cr","施設基準値で評価（eGFRに換算）"]],
+   src:"永井"}
+ ]},
+ {cat:"画像・尿路", items:[
+  {n:"腹部超音波", det:"腎腫瘍・結石・水腎など形のある異常を見る",
+   who:"中リスク以上。低リスクでも一度は可（無症候の初期スクリーニング）",
+   rows:[["限界","腎癌・尿路上皮癌の<b>感度は低い</b>（陰性でも否定不可）"],["利点","簡便・非侵襲・被曝なし"]],
+   src:"河本／松本"},
+  {n:"尿細胞診", det:"尿中の悪性細胞（高悪性度・CIS）を見る",
+   who:"高リスク or 感染なき膀胱刺激症状の持続。低リスクでは<b>ルーチン不要（任意）</b>",
+   rows:[["感度","low grade <span class='num'>10〜20%</span>台／high grade・CIS <span class='num'>約80%</span>"],
+         ["注意","陰性でも尿路上皮癌を否定しない（過信しない）"]],
+   src:"松本／AUA 2020"},
+  {n:"膀胱鏡", det:"膀胱内の腫瘍を直視で見る",
+   who:"中・高リスク（泌尿器科で実施）",
+   rows:[["感度","<span class='num'>約98%</span>（標準検査）"],["備考","男性は軟性鏡で苦痛が少ない"]],
+   src:"松本"},
+  {n:"CT urography（CTU）", det:"上部尿路（腎盂尿管癌）・腎実質を見る",
+   who:"高リスク（泌尿器科で実施）",
+   rows:[["相","非造影→腎実質相(約100秒)→排泄相(8分以降)"],["造影禁忌時","MR urography（拡散強調 b=1000）を次善"]],
+   src:"松本／髙橋"}
+ ]},
+ {cat:"病態に応じて", items:[
+  {n:"尿培養", det:"尿路感染を見る",
+   who:"膿尿・細菌尿・排尿症状がある人。治療後に再検",
+   rows:[["位置づけ","感染を除外してから血尿の精査を進める"]],
+   src:"—"},
+  {n:"免疫学的検査（補体・ANCA・抗GBM）", det:"糸球体腎炎・血管炎を見る",
+   who:"糸球体性所見・全身症状・急速な腎機能低下（RPGN/血管炎を疑う）",
+   rows:[["位置づけ","腎臓内科ルートの精査（紹介先で実施も多い）"]],
+   src:"遠山"}
+ ]},
+ {cat:"行わない検査", items:[
+  {n:"尿中腫瘍マーカー（NMP22 / BTA）", det:"スクリーニング目的では行わない", skip:true,
+   who:"血尿のスクリーニング目的では行わない（推奨されない）",
+   rows:[["根拠","診断精度が不十分。AUA 2020 は強く非推奨"]],
+   src:"AUA 2020／梅田"}
+ ]}
+];
+
+/* ===== フロー描画 ===== */
+let history=["m_confirm"];
+const screenEl=document.getElementById("screen");
+const stepsEl=document.getElementById("steps");
+const backBtn=document.getElementById("back");
+const againBtn=document.getElementById("again");
+
+function go(id){ history.push(id); paint(); }
+function paint(){
+ const id=history[history.length-1];
+ const n=NODES[id];
+ stepsEl.innerHTML=[1,2,3,4].map(i=>{
+  const cur=n.step, c=i<cur?"done":(i===cur?"on":"");
+  return `<span class="s ${c}"></span>`;
+ }).join("");
+ screenEl.innerHTML = n.type==="q" ? qHTML(n) : rHTML(n);
+ screenEl.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>go(b.dataset.to)));
+ backBtn.classList.toggle("hideb", history.length<=1);
+ againBtn.classList.toggle("hideb", n.type!=="r");
+ window.scrollTo?.({top:0,behavior:"smooth"});
+}
+function evHTML(ev){
+ if(!ev) return "";
+ const rows=ev.rows.map(r=>`<div class="evrow"><div class="k">${r[0]}</div><div class="v">${r[1]}</div></div>`).join("");
+ return `<div class="evp"><div class="eh">${ev.title}</div>${rows}<div class="evsrc">出典：${ev.src}</div></div>`;
+}
+function qHTML(n){
+ return `<span class="qno">${n.qno}</span>
+  <p class="qq">${n.q}</p>
+  <p class="qhint">${n.hint}</p>
+  <div class="opts">${n.opts.map(o=>`
+   <button class="opt" data-to="${o.to}">
+    <span class="yn ${o.yn}">${({y:"あり",n:"なし",q:"確認"})[o.yn]}</span>
+    <span><span class="ot">${o.t}</span><span class="od">${o.d}</span></span>
+    <span class="arr">›</span>
+   </button>`).join("")}
+  </div>
+  ${evHTML(n.ev)}`;
+}
+function rHTML(n){
+ return `<div class="banner ${n.cls}">
+   <div class="bk">${n.bk}</div><div class="bm">${n.bm}</div><div class="bs">${n.bs}</div>
+  </div>
+  <div class="todo"><h3>やること</h3><ul>${n.todo.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+  ${evHTML(n.ev)}`;
+}
+backBtn.addEventListener("click",()=>{ if(history.length>1){history.pop();paint();} });
+againBtn.addEventListener("click",()=>{ history=["m_confirm"];paint(); });
+document.getElementById("home").addEventListener("click",()=>{ history=["m_confirm"];paint(); });
+
+/* ===== 検査ページ描画 ===== */
+function renderTests(){
+ const el=document.getElementById("testscreen");
+ let html=`<p class="tlead">血尿で出てくる検査を「<b>何を見るか</b>・<b>どんな人にするか</b>・<b>根拠</b>」で引けます。タップで開きます。</p>`;
+ TESTS.forEach(g=>{
+  html+=`<div class="tcat">${g.cat}</div>`;
+  g.items.forEach((t,i)=>{
+   const rows=t.rows.map(r=>`<div class="evrow"><div class="k">${r[0]}</div><div class="v">${r[1]}</div></div>`).join("");
+   html+=`<div class="titem ${t.skip?'skip':''}">
+     <button class="thead"><span><span class="tn">${t.n}</span><span class="tdet">${t.det}</span></span><span class="chev">›</span></button>
+     <div class="tbody">
+       <div class="who"><div class="wl">${t.skip?'扱い':'対象（する人）'}</div><div class="wv">${t.who}</div></div>
+       <div class="evp"><div class="eh">エビデンス</div>${rows}<div class="evsrc">出典：${t.src}</div></div>
+     </div>
+    </div>`;
+  });
+ });
+ el.innerHTML=html;
+ el.querySelectorAll(".thead").forEach(b=>b.addEventListener("click",()=>b.parentElement.classList.toggle("open")));
+}
+
+/* ===== タブ切替 ===== */
+document.querySelectorAll("#tabs button").forEach(b=>{
+ b.addEventListener("click",()=>{
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  const t=b.dataset.tab;
+  document.getElementById("flowmode").style.display = t==="flow"?"block":"none";
+  document.getElementById("testmode").style.display = t==="test"?"block":"none";
+  window.scrollTo?.({top:0,behavior:"smooth"});
+ });
+});
+
+paint();
+renderTests();
+</script>
+</body>
+</html>
