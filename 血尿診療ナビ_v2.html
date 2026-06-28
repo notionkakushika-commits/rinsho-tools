@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>血尿診療ナビ v2｜内科外来の振り分け・想起</title>
+<style>
+ :root{
+  --bg:#f5f7f9; --card:#ffffff; --ink:#1f2a33; --sub:#5b6b78;
+  --line:#e2e8ee; --accent:#0f8a9c; --accent-d:#0b6b78; --accent-bg:#e8f5f7;
+  --kidney:#1d6fb8; --kidney-bg:#e9f1fb;
+  --uro:#b8631d; --uro-bg:#fbf0e7;
+  --internal:#5a7d2a; --internal-bg:#eef5e3;
+  --red:#c0392b; --red-bg:#fbeae8; --amber:#b8860b; --amber-bg:#fdf6e3;
+  --shadow:0 1px 3px rgba(20,40,60,.06),0 6px 20px rgba(20,40,60,.05);
+ }
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+ .wrap{max-width:780px;margin:0 auto;padding:0 18px 80px}
+ header.top{position:sticky;top:0;z-index:30;background:rgba(245,247,249,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:18px}
+ .top-in{max-width:780px;margin:0 auto;padding:0 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+ .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+ .dot{width:11px;height:11px;border-radius:50%;background:var(--accent)}
+ .brand small{font-weight:500;color:var(--sub);font-size:12px}
+ .spacer{flex:1}
+ .modeswitch{display:flex;background:#e9eef2;border-radius:10px;padding:3px;border:1px solid var(--line)}
+ .modeswitch button{border:0;background:transparent;padding:7px 16px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--sub);cursor:pointer}
+ .modeswitch button.on{background:#fff;color:var(--accent-d);box-shadow:var(--shadow)}
+ h1{font-size:20px;margin:4px 0 2px}
+ .lead{color:var(--sub);font-size:13.5px;margin:0 0 16px}
+
+ /* top-level mode tabs (flow / reverse) */
+ .apptabs{display:flex;gap:8px;margin-bottom:16px}
+ .apptabs button{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;
+  padding:12px 10px;font:inherit;font-weight:700;font-size:14px;color:var(--sub);cursor:pointer;transition:.12s}
+ .apptabs button .t2{display:block;font-weight:500;font-size:11.5px;color:var(--sub);margin-top:2px}
+ .apptabs button.on{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-d)}
+ .apptabs button.on .t2{color:var(--accent-d)}
+
+ .crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--sub);margin-bottom:12px;min-height:20px}
+ .crumbs .c{background:#eef2f5;border:1px solid var(--line);border-radius:14px;padding:3px 10px}
+ .crumbs .sep{opacity:.5}
+
+ .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);padding:20px 20px 18px;margin-bottom:16px}
+ .qkick{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--accent-d);
+  background:var(--accent-bg);display:inline-block;padding:3px 10px;border-radius:14px;margin-bottom:10px}
+ .qtitle{font-size:17px;font-weight:800;margin:0 0 4px}
+ .qhint{color:var(--sub);font-size:13px;margin:0 0 14px}
+ .opts{display:flex;flex-direction:column;gap:10px}
+ .opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;
+  border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px 15px;cursor:pointer;
+  transition:.12s;font:inherit;color:var(--ink)}
+ .opt:hover{border-color:var(--accent);background:#fafdfd;transform:translateY(-1px)}
+ .opt .lead2{font-weight:700;font-size:14.5px}
+ .opt .desc{color:var(--sub);font-size:12.5px;margin-top:3px;line-height:1.55}
+ .opt .arrow{margin-left:auto;color:var(--accent);font-weight:700;flex:none;align-self:center}
+ .opt .tag{flex:none;font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;border:1px solid;margin-top:1px}
+ .t-low{background:var(--internal-bg);color:var(--internal);border-color:#cfe0b4}
+ .t-int{background:var(--amber-bg);color:var(--amber);border-color:#ecd9a6}
+ .t-high{background:var(--red-bg);color:var(--red);border-color:#eecac4}
+ .t-kid{background:var(--kidney-bg);color:var(--kidney);border-color:#bcd6ef}
+
+ /* result */
+ .verdict{border-radius:14px;padding:16px 18px;margin-bottom:16px;border:1px solid;color:#fff}
+ .verdict.internal{background:var(--internal)} .verdict.kidney{background:var(--kidney)}
+ .verdict.uro{background:var(--uro)} .verdict.urgent{background:var(--red)}
+ .verdict.info{background:#56707f}
+ .v-kick{font-size:12px;font-weight:700;letter-spacing:.04em;opacity:.9}
+ .v-main{font-size:22px;font-weight:800;margin-top:2px}
+ .v-sub{font-size:13px;margin-top:5px;opacity:.95}
+
+ .resblock{margin-bottom:14px}
+ .resblock h3{font-size:13.5px;margin:0 0 8px;border-left:3px solid var(--accent);padding-left:8px}
+ ul.clean{margin:0;padding-left:0;list-style:none}
+ ul.clean li{padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px;display:flex;gap:9px;align-items:flex-start}
+ ul.clean li:last-child{border-bottom:0}
+ ul.clean li .ic{flex:none;width:18px;text-align:center}
+ .src{color:var(--sub);font-size:11px}
+
+ /* 想起モジュール */
+ .recall{background:#fbfcfd;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+ .recall h3{font-size:13px;margin:0 0 10px;color:var(--accent-d);font-weight:800}
+ .dxrow{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+ .dxrow:last-child{border-bottom:0}
+ .dxrow .dx{font-weight:700;flex:none;min-width:118px}
+ .dxrow .why{color:var(--sub)}
+ .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px}
+ .pill.k{background:var(--kidney-bg);color:var(--kidney)}
+ .pill.u{background:var(--uro-bg);color:var(--uro)}
+ .pill.i{background:var(--internal-bg);color:var(--internal)}
+
+ .when{display:flex;gap:12px;background:var(--internal-bg);border:1px solid #cfe0b4;border-radius:12px;padding:12px 15px;margin-bottom:14px;font-size:13.5px}
+ .when .clock{font-size:20px;flex:none}
+ .when b{color:var(--internal)}
+
+ .crit{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:10px 13px;font-size:12.5px;color:var(--sub);margin-top:8px}
+ .crit b{color:var(--ink)}
+ .pitfall{background:#fff7f6;border:1px solid #f1d6d1;border-radius:10px;padding:10px 13px;font-size:12.5px;color:#7a4a44;margin-top:8px}
+ .pitfall b{color:var(--red)}
+
+ .patientbox{background:#fbfdfd;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:14.5px;line-height:1.85}
+ .patientbox p{margin:0 0 10px} .patientbox p:last-child{margin:0}
+ .copybar{display:flex;justify-content:flex-end;margin-top:8px}
+ .doctor .patientonly{display:none}
+ .patient .doctoronly{display:none}
+
+ .navbtns{display:flex;gap:10px;margin-top:6px}
+ .btn{border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer}
+ .btn.ghost{background:#eef2f5;color:var(--sub)}
+ .btn.line{background:#fff;border:1px solid var(--line);color:var(--accent-d)}
+ .note{font-size:11.5px;color:var(--sub);background:#fafbfc;border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px;margin-top:6px}
+ .note b{color:var(--ink)}
+ details.sources summary{cursor:pointer;font-size:12.5px;color:var(--accent-d);font-weight:600}
+ details.sources ol{font-size:11.5px;color:var(--sub);padding-left:20px}
+ .disclaimer{font-size:11.5px;color:var(--sub);text-align:center;margin-top:22px;line-height:1.7}
+
+ /* reverse lookup */
+ .fgroup{margin-bottom:14px}
+ .fgroup h4{font-size:12.5px;color:var(--sub);margin:0 0 8px;font-weight:700}
+ .chk{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:#fff;
+  border-radius:10px;padding:10px 13px;margin-bottom:8px;cursor:pointer;transition:.12s}
+ .chk:hover{border-color:var(--accent);background:#fafdfd}
+ .chk.on{border-color:var(--accent);background:var(--accent-bg)}
+ .chk input{margin-top:3px;flex:none}
+ .chk .fl{font-weight:600;font-size:13.5px}
+ .chk .fd{color:var(--sub);font-size:12px;margin-top:2px}
+ .rev-result{margin-top:8px}
+ .triage-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+ .triage-chip{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:20px;border:1px solid}
+ .tc-internal{background:var(--internal-bg);color:var(--internal);border-color:#cfe0b4}
+ .tc-kidney{background:var(--kidney-bg);color:var(--kidney);border-color:#bcd6ef}
+ .tc-uro{background:var(--uro-bg);color:var(--uro);border-color:#e6c8a6}
+ .tc-urgent{background:var(--red-bg);color:var(--red);border-color:#eecac4}
+ .empty{color:var(--sub);font-size:13px;text-align:center;padding:24px 0}
+</style>
+</head>
+<body class="doctor">
+<header class="top">
+ <div class="top-in">
+  <div class="brand"><span class="dot"></span>血尿診療ナビ <small>v2 ・ 内科外来の振り分けと想起</small></div>
+  <div class="spacer"></div>
+  <div class="modeswitch" id="modeswitch">
+   <button data-mode="doctor" class="on">医師モード</button>
+   <button data-mode="patient">患者説明モード</button>
+  </div>
+ </div>
+</header>
+
+<div class="wrap">
+ <h1>血尿 振り分け・想起ナビ</h1>
+ <p class="lead">血尿を認めたら「内科で検査／経過観察（再検時期）／腎臓内科紹介／泌尿器科紹介／至急」へ振り分け、<b>どの疾患を想定して・なぜその検査をするか</b>まで示します。数値基準は『血尿診断ガイドライン2023』解説・AUA/SUFU 2020・内科系資料に準拠。最終判断は医師が行ってください。</p>
+
+ <div class="apptabs" id="apptabs">
+  <button data-tab="flow" class="on">フローで進む<span class="t2">質問に答えて振り分け</span></button>
+  <button data-tab="reverse">所見から逆引き<span class="t2">所見をチェック→想定疾患と検査</span></button>
+ </div>
+
+ <!-- ===== FLOW MODE ===== -->
+ <div id="flowmode">
+  <div class="crumbs" id="crumbs"></div>
+  <div id="stage"></div>
+  <div class="navbtns" id="navbtns" style="display:none">
+   <button class="btn line" id="back">← 一つ戻る</button>
+   <button class="btn ghost" id="restart">最初から</button>
+  </div>
+ </div>
+
+ <!-- ===== REVERSE MODE ===== -->
+ <div id="reversemode" style="display:none">
+  <div class="card">
+   <span class="qkick">所見逆引き</span>
+   <p class="qtitle">当てはまる所見をチェック</p>
+   <p class="qhint">選んだ所見から、想定疾患・推奨アクション・検査の狙いをまとめて表示します。</p>
+   <div id="checklist"></div>
+  </div>
+  <div id="revresult" class="rev-result"></div>
+ </div>
+
+ <div class="card" style="margin-top:14px">
+  <details class="sources">
+   <summary>このナビの根拠と限界（必読）</summary>
+   <div class="note" style="margin-top:10px">
+    <b>顕微鏡的血尿の定義</b>：尿沈渣で赤血球 ≥5個/HPF、または無遠心尿で ≥20個/μL（日本・GL2023）。AUA/SUFU は ≥3個/HPF。<b>肉眼的血尿</b>：1L中1mLの血液で視認可。年齢を問わず原則精査。<br><br>
+    <b>限界</b>：リスク分類・膀胱鏡CQ・検査方針は解説論文（松本・坂本ほか）から再構成。肉眼的血尿の内科的緊急所見は「内科からみた肉眼的血尿の鑑別と検査（遠山ほか）」、POCUS適応は「血尿・POCUSによる検査の進め方（紺野）」に基づく。GL2023本体の全CQ/BQ・正確な推奨文言は本体を参照のこと。自然消失率は報告により32〜85%と幅あり。<br><br>
+    本ツールは「入り口」の意思決定支援であり、個別患者の確定判断は医師が行うものです。
+   </div>
+  </details>
+ </div>
+
+ <p class="disclaimer">血尿診療ナビ v2（肉眼的＋顕微鏡的・想起モジュール・所見逆引き）／ローカル動作・データは送信されません。</p>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   FLOW モード：決定木ノード
+   ============================================================ */
+const NODES = {
+ /* --- 入口：肉眼/顕微鏡を分ける --- */
+ start:{
+  type:"q", kick:"STEP 0 ・ 入口",
+  title:"血尿の種類はどちらか",
+  hint:"肉眼的（赤〜褐色で見てわかる）か、健診・検尿で指摘された顕微鏡的血尿かで戦略が変わります。",
+  opts:[
+   {tag:"肉眼", tagcls:"t-high", lead:"肉眼的血尿（見た目で赤〜褐色）",
+    desc:"年齢を問わず原則精査。内科的緊急の有無をまず判定", to:"g_confirm"},
+   {tag:"健診", tagcls:"t-low", lead:"顕微鏡的血尿・検尿の潜血陽性",
+    desc:"まず本当に血尿かを確定 → 病型 → リスク層別", to:"confirmed_gate"}
+  ]
+ },
+
+ /* ===== 肉眼的血尿フロー ===== */
+ g_confirm:{
+  type:"q", kick:"肉眼 STEP 1 ・ 確定",
+  title:"本当に血液（赤血球）か",
+  hint:"色のついた尿＝血尿ではない。沈渣で赤血球を確認し、ヘモグロビン尿・ミオグロビン尿・色素を除外。",
+  opts:[
+   {lead:"沈渣で赤血球を確認した（真の血尿）", desc:"先へ進む", to:"g_redflag"},
+   {tag:"確認前", tagcls:"t-int", lead:"沈渣未確認／色素・筋由来を除外したい", desc:"偽の赤色尿の鑑別へ", to:"g_falsepos"}
+  ]
+ },
+ g_redflag:{
+  type:"q", kick:"肉眼 STEP 2 ・ 内科的緊急の判定",
+  title:"内科的に緊急を要する所見はあるか",
+  hint:"肉眼的血尿は泌尿器科疾患が多いが、内科的緊急が紛れる。表1（遠山ほか）の所見を拾う。",
+  opts:[
+   {tag:"至急", tagcls:"t-high", lead:"緊急所見あり（いずれか）",
+    desc:"cola様(褐色)尿／高度蛋白尿±進行性腎機能低下／感染所見を欠く発熱／呼吸器・皮膚など全身症状／腎後性が否定される腎障害", to:"g_internal_urgent"},
+   {tag:"なし", tagcls:"t-low", lead:"緊急所見はない",
+    desc:"病型（糸球体性か尿路性か）の評価へ", to:"g_type"}
+  ]
+ },
+ g_type:{
+  type:"q", kick:"肉眼 STEP 3 ・ 病型",
+  title:"出血源を示す手がかりは",
+  hint:"cola様尿・変形赤血球・蛋白尿は糸球体性。凝血塊・鮮紅色・随伴症状は尿路（非糸球体性）。",
+  opts:[
+   {tag:"腎", tagcls:"t-kid", lead:"糸球体性を示唆",
+    desc:"cola様(褐色)尿・変形/有棘赤血球・赤血球円柱・蛋白尿合併のいずれか", to:"glomerular"},
+   {tag:"尿路", tagcls:"t-int", lead:"非糸球体性（尿路）＋随伴症状あり",
+    desc:"側腹部痛・疝痛・発熱など随伴症状を伴う肉眼的血尿", to:"g_uro_symptomatic"},
+   {tag:"尿路", tagcls:"t-high", lead:"非糸球体性・無症候性の肉眼的血尿",
+    desc:"凝血塊・鮮紅色で随伴症状なし → 尿路上皮癌の精査を優先", to:"g_uro_painless"}
+  ]
+ },
+
+ /* ===== 顕微鏡的血尿フロー（v1踏襲） ===== */
+ confirmed_gate:{
+  type:"q", kick:"健診 STEP 0 ・ 確定",
+  title:"尿沈渣で赤血球を確認したか",
+  hint:"試験紙潜血(1＋)＝Hb 0.06 mg/dL以上。試験紙陽性は必ず沈渣で裏づける。",
+  opts:[
+   {lead:"沈渣で赤血球 ≥5/HPF を確認（真の血尿）", desc:"確定として先へ", to:"confirmed"},
+   {tag:"確認前", tagcls:"t-int", lead:"試験紙のみ陽性（沈渣未確認）", desc:"偽陽性の除外へ", to:"falsepos"}
+  ]
+ },
+ confirmed:{
+  type:"q", kick:"健診 STEP 1 ・ 病型の入り口",
+  title:"病型を示す手がかりはどれか",
+  hint:"糸球体性（腎臓内科領域）か、非糸球体性（尿路＝泌尿器科領域）かを大きく分けます。",
+  opts:[
+   {tag:"至急", tagcls:"t-high", lead:"急速な腎機能低下・全身症状がある",
+    desc:"数日〜数週で腎機能が低下／発熱・呼吸器・皮膚など全身症状を伴う", to:"redflag"},
+   {tag:"腎", tagcls:"t-kid", lead:"糸球体性を示唆する所見がある",
+    desc:"変形赤血球 ≥30%・有棘赤血球 ≥5%・赤血球円柱・蛋白尿合併・eGFR低下 のいずれか", to:"glomerular"},
+   {tag:"尿路", tagcls:"t-low", lead:"非糸球体性（均一赤血球・蛋白尿なし/軽度）",
+    desc:"上記の糸球体性所見がない → 尿路上皮癌リスク評価へ", to:"riskeval"}
+  ]
+ },
+ riskeval:{
+  type:"q", kick:"健診 STEP 2 ・ 尿路上皮癌リスク（AUA/SUFU 2020）",
+  title:"リスク区分はどれに当てはまるか",
+  hint:"年齢・性別・喫煙(pack-years)・沈渣赤血球数・リスク因子の「最も高い区分」を採用します。",
+  opts:[
+   {tag:"低", tagcls:"t-low", lead:"低リスク（すべて満たす）",
+    desc:"男<40 かつ 女<50／非喫煙 or <10 pack-years／RBC 3〜10/HPF／他のリスク因子なし／既往なし", to:"low"},
+   {tag:"中", tagcls:"t-int", lead:"中リスク（いずれか）",
+    desc:"男40〜59 or 女50〜59／喫煙10〜30 pack-years／RBC 11〜25/HPF／リスク因子1つ以上", to:"int"},
+   {tag:"高", tagcls:"t-high", lead:"高リスク（いずれか）",
+    desc:"60歳以上／喫煙>30 pack-years／RBC>25/HPF／肉眼的血尿の既往", to:"high"}
+  ]
+ },
+
+ /* ============================================================
+    結果ノード（verdict / when / 想起recall / tests / 患者説明）
+    ============================================================ */
+ falsepos:{
+  type:"r", verdict:"info", vkick:"確定の前に", vmain:"まず尿沈渣で赤血球を確認",
+  vsub:"真の血尿の確定が前提。偽陽性を除外してから先へ進む。",
+  recall:[
+   ["偽陽性（試験紙陽性・沈渣RBCなし）","ミオグロビン尿（CK↑）・ヘモグロビン尿（溶血）・酸化剤(ポビドンヨード)・アルカリ尿pH>9・精子混入","i"],
+   ["偽陰性（赤色尿・試験紙陰性）","アスコルビン酸(ビタミンC)摂取","i"]
+  ],
+  tests:[
+   ["🧪","尿沈渣で赤血球を確認（試験紙陽性は必ず沈渣で裏づけ）","油野"],
+   ["🔬","沈渣でRBCなし＝偽陽性：精子混入／酸化剤／pH>9／ヘモグロビン尿／ミオグロビン尿を鑑別","油野/梅田"],
+   ["🧫","ミオグロビン尿はCK、溶血はLDH↑・ハプトグロビン↓・間接ビリルビン↑で裏づけ","Notion"]
+  ],
+  patient:[
+   "尿検査で潜血の反応が出ましたが、これだけでは本当に血液が混じっているかは確定できません。",
+   "もう一度、沈渣という詳しい尿検査で赤血球を直接確認します。反応だけ陽性で赤血球が見えないこともよくあります。"
+  ]
+ },
+ g_falsepos:{
+  type:"r", verdict:"info", vkick:"確定の前に", vmain:"赤色尿＝血尿とは限らない",
+  vsub:"沈渣で赤血球を確認し、色素・筋由来・溶血を除外する。",
+  recall:[
+   ["ミオグロビン尿","横紋筋融解（CK著明高値・赤褐色尿・沈渣RBCなし）","i"],
+   ["ヘモグロビン尿","血管内溶血（貧血・LDH↑・ハプトグロビン↓）","i"],
+   ["色素・薬剤","ビーツ／リファンピシン／メトロニダゾール／フェナゾピリジン","i"]
+  ],
+  tests:[
+   ["🧪","尿沈渣でRBC確認。なければ CK・LDH・ハプトグロビン・血算で筋・溶血を鑑別","遠山/Notion"],
+   ["📋","食事・内服歴・月経歴を問診し、必要なら再検","Notion"]
+  ],
+  patient:[
+   "尿が赤い・茶色いからといって、必ずしも血液とは限りません。筋肉の成分や色素でも色がつくことがあります。",
+   "まず詳しい尿検査と血液検査で、本当に血液かどうかを確かめます。"
+  ]
+ },
+
+ g_internal_urgent:{
+  type:"r", verdict:"urgent", vkick:"振り分け", vmain:"腎臓内科 紹介（至急）／全身精査",
+  vsub:"肉眼的血尿に内科的緊急所見を合併。RPGN・全身性血管炎・肺腎症候群などを念頭に。",
+  recall:[
+   ["急速進行性糸球体腎炎(RPGN)","数日〜数週で腎機能低下。診断遅延で腎廃絶","k"],
+   ["ANCA関連血管炎","感染所見を欠く発熱・全身症状・肺胞出血","k"],
+   ["Goodpasture症候群","肺胞出血＋進行性腎障害（抗GBM）","k"],
+   ["抗凝固薬関連腎症","ワルファリン/DOAC中の肉眼的血尿＋AKI","i"]
+  ],
+  tests:[
+   ["⚑","数日〜数週での腎機能低下 → RPGNを念頭に速やかに腎臓内科へ","遠山/梅田"],
+   ["🫁","発熱・呼吸器/皮膚/紫斑など全身症状 → ANCA・抗GBMを提出し胸部CT等で全身精査","遠山"],
+   ["🧪","尿沈渣(変形RBC・赤血球円柱)・尿蛋白/Cr比・血清Cr/eGFR・補体・尿培養","遠山"]
+  ],
+  pitfall:"尿路感染として抗菌薬を開始しても反応に乏しい発熱では、糸球体性血尿・血管炎を想起する。",
+  patient:[
+   "血尿に加えて、腎臓の働きの低下や全身の症状を伴っており、急いで進む腎臓の病気の可能性があります。",
+   "できるだけ早く腎臓内科で詳しい検査を受けていただきます。状況により入院での精査が必要なこともあります。"
+  ]
+ },
+ g_uro_symptomatic:{
+  type:"r", verdict:"uro", vkick:"振り分け", vmain:"泌尿器科 紹介（随伴症状あり）",
+  vsub:"随伴症状を伴う非糸球体性の肉眼的血尿。症状から部位・疾患を絞り込む。",
+  recall:[
+   ["尿路結石","疝痛・CVA叩打痛。低線量単純CT感度97%","u"],
+   ["腎梗塞","高度の側腹部/背部痛＋血尿。塞栓源(心房細動)検索","i"],
+   ["Nutcracker症候群","若年女性・左側腹部痛・反復する肉眼的血尿。ドップラー/3DCT","k"],
+   ["腎盂腎炎/出血性膀胱炎","発熱・排尿痛・膿尿","u"]
+  ],
+  tests:[
+   ["🩻","腹部超音波(POCUS)で水腎・結石・占拠性を初期スクリーニング → 単純CT","紺野/松本"],
+   ["🧫","尿培養・尿細胞診。発熱例は腎盂腎炎/閉塞の評価を急ぐ","紺野"],
+   ["🫀","高度側腹部痛で結石が否定的なら腎梗塞も想起し塞栓源検索","Notion"]
+  ],
+  pitfall:"結石でも血尿は8〜9割で陰性例あり。痛みが強く画像で結石がなければ他疾患も検討。",
+  patient:[
+   "痛みなどの症状を伴う血尿で、尿の通り道（腎臓・尿管・膀胱）の問題が考えられます。",
+   "超音波やCT、尿の検査で原因を確認します。結石・感染・血管の問題など、症状に応じて調べます。"
+  ]
+ },
+ g_uro_painless:{
+  type:"r", verdict:"uro", vkick:"振り分け", vmain:"泌尿器科 紹介（優先・悪性精査）",
+  vsub:"無症候性の肉眼的血尿は尿路上皮癌の典型症状。年齢を問わず精査を優先。",
+  recall:[
+   ["膀胱癌(尿路上皮癌)","無症候性肉眼的血尿が典型。高齢男性・喫煙・芳香族アミン曝露","u"],
+   ["腎盂尿管癌","初発の約60%が肉眼的血尿。20〜30%に側腹部痛","u"],
+   ["腎細胞癌","三徴(血尿・側腹部痛・腫瘤)は揃わぬことが多く偶発発見","u"]
+  ],
+  tests:[
+   ["🔬","膀胱鏡（軟性鏡）＋ CT urography（非造影→腎実質相→排泄相）","松本/髙橋"],
+   ["🧫","尿細胞診を併用（high grade腫瘍検出に有用）","松本"],
+   ["🧲","ヨード造影剤が使えなければMRI（拡散強調 b=1000）を次善","髙橋"]
+  ],
+  pitfall:"尿細胞診陰性は膀胱癌を否定しない（low gradeで偽陰性多い）。抗凝固薬中でも薬剤性で片付けない。",
+  patient:[
+   "痛みのない目に見える血尿は、尿の通り道のがんを含めてしっかり調べておくべきサインです。",
+   "泌尿器科で膀胱鏡とCTの検査を受けていただきます。早く調べることが何より大切です。"
+  ]
+ },
+
+ redflag:{
+  type:"r", verdict:"urgent", vkick:"振り分け", vmain:"腎臓内科 紹介（至急）",
+  vsub:"急速進行性糸球体腎炎(RPGN)・全身性血管炎などを念頭に、速やかに専門医へ。",
+  recall:[
+   ["急速進行性糸球体腎炎(RPGN)","数日〜数週で腎機能低下。腎生検を要する","k"],
+   ["ANCA関連血管炎/抗GBM","全身症状・肺胞出血の合併","k"]
+  ],
+  tests:[
+   ["⚑","数日〜数週での腎機能低下 → RPGNを念頭に速やかに腎臓内科専門医へ","遠山/梅田"],
+   ["🫁","全身症状 → ANCA・抗GBMを提出、胸部CT等で全身精査","遠山"],
+   ["🔬","腎生検を含む精査を念頭に。診断・治療の遅れで腎機能が廃絶しうる","梅田/長屋"]
+  ],
+  patient:[
+   "腎臓の働きが短い期間で低下していたり全身症状を伴っており、腎臓の病気が急いで進んでいる可能性があります。",
+   "できるだけ早く腎臓内科で詳しい検査を受けていただきます。"
+  ]
+ },
+ glomerular:{
+  type:"r", verdict:"kidney", vkick:"振り分け", vmain:"腎臓内科 紹介",
+  vsub:"糸球体性血尿が示唆される（腎臓そのものからの出血）。",
+  recall:[
+   ["IgA腎症","感冒後の肉眼的血尿(synpharyngitic)。日本人で最多の一次性糸球体腎炎","k"],
+   ["菲薄基底膜病/Alport","家族性の持続性血尿。Alportは難聴・眼症状を伴い進行性","k"],
+   ["急性/紫斑病性腎炎","先行感染・紫斑。cola様尿＋蛋白尿","k"]
+  ],
+  tests:[
+   ["🧪","尿沈渣(赤血球形態・円柱)・尿蛋白/Cr比・血清Cr/eGFR・必要に応じ補体/ANCA/抗GBM","遠山/梅田"],
+   ["📋","紹介の目安：蛋白尿 ≥0.5 g/gCr／血尿＋蛋白尿／eGFR低下／変形・有棘RBC・赤血球円柱","永井/栗原"],
+   ["🧬","血尿のみ(蛋白尿なし)でもIgA腎症・菲薄基底膜病を念頭に。「蛋白尿なし」は否定にならない","梅田/栗原"]
+  ],
+  crit:"<b>eGFRの年齢補正の目安</b>：&lt;40歳は&lt;60、40〜70歳は&lt;50、70歳以上は&lt;40 mL/分/1.73㎡（永井）",
+  patient:[
+   "出血のしかたから、腎臓そのもの（糸球体）からの出血が疑われます。",
+   "腎臓の状態を詳しく調べるため、腎臓内科での検査をおすすめします。たんぱく尿や腎機能とあわせて評価します。"
+  ]
+ },
+ low:{
+  type:"r", verdict:"internal", vkick:"振り分け", vmain:"内科で検査 ＋ 経過観察",
+  vsub:"非糸球体性・低リスク。負担の少ない検査から自院で。",
+  when:"発見後1年は3か月毎に尿検査。以後は血尿が続く限り年1〜2回＋必要に応じ年1回の血液検査。2年連続の潜血陽性は精査の目安。",
+  recall:[
+   ["一過性・良性血尿","運動後血尿(24〜48hで消失)・軽度尿路刺激など","i"],
+   ["（念のため）尿路上皮癌","低リスクでも完全否定は不可。再検と説明を継続","u"],
+   ["潜在性糸球体腎炎","経過中に顕在化する例あり(坂本:1年後にIgA腎症)","k"]
+  ],
+  tests:[
+   ["🔎","侵襲の少ない検査から：腹部超音波 ＋ 尿細胞診 ＋ 尿の再検査","栗原/松本"],
+   ["📅","経過観察：1年は3か月毎の尿検査、以後 年1〜2回＋必要に応じ年1回採血","長屋(GL2013)"],
+   ["⚠️","腹部超音波は簡便だが腎癌・尿路上皮癌の感度は低い。陰性でも悪性は完全否定不可","河本/梅田"]
+  ],
+  crit:"自然消失は32〜85%と幅。ただし異常なし群よりCKD発症リスクは有意に高く、糸球体腎炎が後に顕在化する例もある。",
+  patient:[
+   "出血は腎臓ではなく尿の通り道から一時的に起きた可能性が高く、年齢などからがんの可能性は低めです。",
+   "まずは負担の少ない検査（超音波・尿）を行い、しばらくして再検査します。最初から全部の検査を行う必要は通常ありません。",
+   "目に見える赤い尿・発熱・強い痛みがあるときはすぐ受診してください。"
+  ]
+ },
+ int:{
+  type:"r", verdict:"uro", vkick:"振り分け", vmain:"泌尿器科 紹介",
+  vsub:"非糸球体性・中リスク。尿路上皮癌スクリーニングを考慮。",
+  recall:[
+   ["膀胱癌(尿路上皮癌)","中リスクでの検出率 約1〜2%。膀胱鏡の感度98%","u"],
+   ["腎盂尿管癌","上部尿路はCTUで評価","u"]
+  ],
+  tests:[
+   ["🔬","膀胱鏡（軟性鏡を推奨）＋ 腎膀胱超音波を考慮（GL2023 CQ：推奨弱い/エビデンスC）","松本"],
+   ["↔️","膀胱鏡が困難なら代替：膀胱・腎超音波＋尿細胞診、かつ尿再検を必ず行う","松本"],
+   ["🚫","尿中腫瘍マーカー(NMP22/BTA)はスクリーニング目的では行わない","梅田/松本"]
+  ],
+  crit:"膀胱鏡CQ該当：40歳以上男性 or 50歳以上女性かつ中・高リスク → 膀胱鏡を考慮。",
+  patient:[
+   "出血は尿の通り道（腎盂・尿管・膀胱）からと考えられます。年齢や喫煙などから、念のため泌尿器科で詳しい検査をおすすめします。",
+   "膀胱の内視鏡や超音波で原因を確認します。早めに調べておくと、万一のときも早く対応できます。"
+  ]
+ },
+ high:{
+  type:"r", verdict:"uro", vkick:"振り分け", vmain:"泌尿器科 紹介（優先）",
+  vsub:"非糸球体性・高リスク。尿路上皮癌の精査を優先。",
+  recall:[
+   ["膀胱癌(尿路上皮癌)","高リスクでの検出率 約6.3%。肉眼的血尿既往は高リスク","u"],
+   ["腎盂尿管癌","CTU排泄相で上部尿路を評価","u"],
+   ["腎細胞癌","CTで腎実質も評価","u"]
+  ],
+  tests:[
+   ["🩻","膀胱鏡 ＋ CT urography（非造影→腎実質相[約100秒]→排泄相[8分以降・理想15分]）","松本/髙橋"],
+   ["🧫","尿細胞診を併用（high grade腫瘍検出に有用）","松本"],
+   ["🧲","ヨード造影剤が使えなければMRI（拡散強調 b=1000）を次善","髙橋"]
+  ],
+  crit:"高リスクでの膀胱癌検出率は約6.3%（メタ解析でも高リスクで上昇）。",
+  patient:[
+   "年齢・喫煙・血尿の程度などから、尿の通り道のがんを含めてしっかり調べておくべき状況です。",
+   "泌尿器科で膀胱鏡とCT検査を受けていただきます。早く調べることが大切です。"
+  ]
+ }
+};
+
+const CRUMB={
+ start:"入口",
+ g_confirm:"肉眼・確定",g_redflag:"肉眼・緊急判定",g_type:"肉眼・病型",
+ g_falsepos:"色素除外",g_internal_urgent:"至急・腎",g_uro_symptomatic:"泌尿器(症状)",g_uro_painless:"泌尿器(無症候)",
+ confirmed_gate:"潜血確定",confirmed:"病型",riskeval:"リスク",
+ falsepos:"沈渣確認",redflag:"至急・腎",glomerular:"腎臓内科",
+ low:"内科で検査",int:"泌尿器科(中)",high:"泌尿器科(高)"
+};
+
+/* ===== FLOW ナビゲーション ===== */
+let history=["start"];
+const stage=document.getElementById("stage");
+const crumbsEl=document.getElementById("crumbs");
+const navbtns=document.getElementById("navbtns");
+
+function go(id){ history.push(id); paint(); }
+function paint(){
+ const id=history[history.length-1];
+ const n=NODES[id];
+ navbtns.style.display = history.length>1 ? "flex":"none";
+ crumbsEl.innerHTML = history.map((h,i)=>{
+  return `<span class="c">${CRUMB[h]||h}</span>`+(i<history.length-1?'<span class="sep">→</span>':'');
+ }).join("");
+ stage.innerHTML = n.type==="q" ? qHTML(n) : rHTML(n);
+ if(n.type==="q"){
+  stage.querySelectorAll(".opt").forEach((b,i)=>b.addEventListener("click",()=>go(n.opts[i].to)));
+ } else {
+  const cp=document.getElementById("copyp");
+  if(cp) cp.addEventListener("click",copyPatient);
+ }
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function qHTML(n){
+ return `<div class="card">
+  <span class="qkick">${n.kick}</span>
+  <p class="qtitle">${n.title}</p>
+  <p class="qhint">${n.hint}</p>
+  <div class="opts">${n.opts.map(o=>`
+   <button class="opt">
+    ${o.tag?`<span class="tag ${o.tagcls}">${o.tag}</span>`:""}
+    <span><span class="lead2">${o.lead}</span><span class="desc">${o.desc}</span></span>
+    <span class="arrow">→</span>
+   </button>`).join("")}
+  </div>
+ </div>`;
+}
+function recallHTML(rows){
+ if(!rows||!rows.length) return "";
+ const body=rows.map(r=>`<div class="dxrow"><span class="dx">${r[0]}<span class="pill ${r[2].trim()}">${({k:"腎",u:"尿路",i:"内科"})[r[2].trim()]||""}</span></span><span class="why">${r[1]}</span></div>`).join("");
+ return `<div class="recall"><h3>想定する疾患と理由</h3>${body}</div>`;
+}
+function rHTML(n){
+ const when=n.when?`<div class="when"><span class="clock">🕒</span><span><b>経過観察・再検時期</b><br>${n.when}</span></div>`:"";
+ const recall=recallHTML(n.recall);
+ const tests=n.tests.map(t=>`<li><span class="ic">${t[0]}</span><span>${t[1]} <span class="src">出典: ${t[2]}</span></span></li>`).join("");
+ const crit=n.crit?`<div class="crit">${n.crit}</div>`:"";
+ const pit=n.pitfall?`<div class="pitfall"><b>🚩 落とし穴</b> ${n.pitfall}</div>`:"";
+ const patient=n.patient.map(p=>`<p>${p}</p>`).join("");
+ return `<div class="card">
+  <div class="verdict ${n.verdict}">
+   <div class="v-kick">${n.vkick}</div>
+   <div class="v-main">${n.vmain}</div>
+   <div class="v-sub">${n.vsub}</div>
+  </div>
+  <div class="doctoronly">
+   ${when}
+   ${recall}
+   <div class="resblock"><h3>やること</h3><ul class="clean">${tests}</ul>${crit}${pit}</div>
+  </div>
+  <div class="patientonly">
+   <div class="resblock"><h3>患者さんへの説明例</h3></div>
+   <div class="patientbox" id="patientbox">${patient}</div>
+   <div class="copybar"><button class="btn line" id="copyp">説明文をコピー</button></div>
+   <div class="note" style="margin-top:10px">状況別の一般的な説明例です。患者さんに合わせて調整してください。</div>
+  </div>
+ </div>`;
+}
+function copyPatient(){
+ const txt=document.getElementById("patientbox").innerText;
+ navigator.clipboard?.writeText(txt).then(()=>{
+  const b=document.getElementById("copyp");const o=b.textContent;b.textContent="コピーしました ✓";
+  setTimeout(()=>b.textContent=o,1600);
+ });
+}
+document.getElementById("back").addEventListener("click",()=>{ if(history.length>1){history.pop();paint();} });
+document.getElementById("restart").addEventListener("click",()=>{ history=["start"];paint(); });
+
+/* ===== 医師/患者モード ===== */
+document.querySelectorAll("#modeswitch button").forEach(b=>{
+ b.addEventListener("click",()=>{
+  document.querySelectorAll("#modeswitch button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  document.body.className=b.dataset.mode;
+ });
+});
+
+/* ============================================================
+   REVERSE モード：所見 → 想定疾患・アクション
+   ============================================================ */
+const FINDINGS=[
+ {g:"尿の見え方・尿所見", items:[
+  {id:"cola", l:"cola様（褐色・コーラ色）尿", d:"糸球体性を示唆",
+   dx:["IgA腎症","急性糸球体腎炎","紫斑病性腎炎"], act:"kidney", why:"沈渣の変形RBC・赤血球円柱と蛋白尿を確認し腎臓内科"},
+  {id:"clot", l:"凝血塊・鮮紅色", d:"非糸球体性（尿路）を示唆",
+   dx:["尿路上皮癌","結石","前立腺疾患"], act:"uro", why:"尿路出血。膀胱鏡・超音波・尿細胞診"},
+  {id:"deform", l:"変形赤血球≥30%／有棘≥5%／赤血球円柱", d:"糸球体性の確証",
+   dx:["糸球体腎炎全般"], act:"kidney", why:"糸球体性。腎機能・尿蛋白とあわせ腎臓内科"},
+  {id:"prot", l:"蛋白尿の合併（≥0.5 g/gCr）", d:"腎予後規定因子",
+   dx:["IgA腎症","RPGN"], act:"kidney", why:"血尿＋蛋白尿は紹介の明確な目安"},
+  {id:"pyuria", l:"膿尿・細菌尿・排尿痛", d:"尿路感染",
+   dx:["膀胱炎","腎盂腎炎"], act:"internal", why:"治療し、治療後も血尿が持続するなら精査"}
+ ]},
+ {g:"全身・経過", items:[
+  {id:"aki", l:"数日〜数週での急速な腎機能低下", d:"内科的緊急",
+   dx:["RPGN","ANCA関連血管炎"], act:"urgent", why:"至急 腎臓内科。腎生検を含む精査"},
+  {id:"fever", l:"感染所見を欠く発熱・全身症状（呼吸器/皮膚/紫斑）", d:"全身性疾患",
+   dx:["ANCA関連血管炎","Goodpasture症候群"], act:"urgent", why:"ANCA・抗GBM提出、胸部CTで全身精査"},
+  {id:"gross", l:"肉眼的血尿（とくに無症候性）", d:"年齢問わず精査",
+   dx:["膀胱癌","腎盂尿管癌"], act:"uro", why:"尿路上皮癌の典型。膀胱鏡＋CTU優先"}
+ ]},
+ {g:"リスク・背景", items:[
+  {id:"highrisk", l:"高齢・男性・喫煙(>30 pack-year)・肉眼歴", d:"尿路上皮癌 高リスク",
+   dx:["膀胱癌","腎盂尿管癌","腎細胞癌"], act:"uro", why:"高リスク。膀胱鏡＋CT urography"},
+  {id:"anticoag", l:"抗凝固薬・抗血小板薬の内服中", d:"薬剤性で片付けない",
+   dx:["基礎疾患(癌・結石)","抗凝固薬関連腎症"], act:"uro", why:"内服中でも腎・尿路精査は必要"},
+  {id:"family", l:"家族性の持続性血尿", d:"遺伝性腎症",
+   dx:["菲薄基底膜病","Alport症候群"], act:"kidney", why:"腎臓内科（Alportは難聴・眼症状）"}
+ ]},
+ {g:"痛み・部位", items:[
+  {id:"colic", l:"疝痛・CVA叩打痛・側腹部痛", d:"結石/閉塞",
+   dx:["尿路結石","腎梗塞"], act:"uro", why:"低線量単純CT。発熱合併なら閉塞性腎盂腎炎を急ぐ"},
+  {id:"ncs", l:"若年女性・左側腹部痛・反復する血尿", d:"Nutcracker",
+   dx:["Nutcracker症候群"], act:"kidney", why:"ドップラー/3DCT。侵襲的検査前に想起"},
+  {id:"exercise", l:"運動後・一過性", d:"運動性血尿",
+   dx:["運動性血尿"], act:"internal", why:"24〜48hで消失。持続するなら他疾患を精査"},
+  {id:"synph", l:"感冒後の肉眼的血尿（若年）", d:"IgA腎症を想起",
+   dx:["IgA腎症"], act:"kidney", why:"synpharyngitic hematuria。家族歴聴取し腎臓内科"}
+ ]}
+];
+const ACT_LABEL={internal:"内科で検査・経過観察",kidney:"腎臓内科 紹介",uro:"泌尿器科 紹介",urgent:"至急 紹介"};
+const ACT_ORDER=["urgent","kidney","uro","internal"];
+const selected=new Set();
+
+function buildChecklist(){
+ const root=document.getElementById("checklist");
+ root.innerHTML=FINDINGS.map(grp=>`
+  <div class="fgroup"><h4>${grp.g}</h4>
+   ${grp.items.map(it=>`
+    <label class="chk" data-id="${it.id}">
+     <input type="checkbox" data-id="${it.id}">
+     <span><span class="fl">${it.l}</span><span class="fd">${it.d}</span></span>
+    </label>`).join("")}
+  </div>`).join("");
+ root.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+  cb.addEventListener("change",()=>{
+   const id=cb.dataset.id;
+   if(cb.checked){selected.add(id);} else {selected.delete(id);}
+   cb.closest(".chk").classList.toggle("on",cb.checked);
+   renderReverse();
+  });
+ });
+}
+function findItem(id){
+ for(const g of FINDINGS){const f=g.items.find(x=>x.id===id);if(f)return f;}
+ return null;
+}
+function renderReverse(){
+ const out=document.getElementById("revresult");
+ if(selected.size===0){ out.innerHTML=`<div class="card"><div class="empty">所見をチェックすると、想定疾患・推奨アクション・検査の狙いがここに出ます。</div></div>`; return; }
+ const picks=[...selected].map(findItem).filter(Boolean);
+ const acts=new Set(picks.map(p=>p.act));
+ const sortedActs=ACT_ORDER.filter(a=>acts.has(a));
+ const chips=sortedActs.map(a=>`<span class="triage-chip tc-${a}">${ACT_LABEL[a]}</span>`).join("");
+ const dxSeen=new Set(); const dxRows=[];
+ picks.forEach(p=>{
+  p.dx.forEach(d=>{ if(!dxSeen.has(d)){dxSeen.add(d); dxRows.push([d,p.why,p.act]);} });
+ });
+ const dxBody=dxRows.map(r=>{
+  const pillcls={urgent:"u",uro:"u",kidney:"k",internal:"i"}[r[2]]||"i";
+  const pilltxt={urgent:"至急",uro:"尿路",kidney:"腎",internal:"内科"}[r[2]]||"";
+  return `<div class="dxrow"><span class="dx">${r[0]}<span class="pill ${pillcls}">${pilltxt}</span></span><span class="why">${r[1]}</span></div>`;
+ }).join("");
+ const lead=sortedActs[0];
+ out.innerHTML=`<div class="card">
+   <div class="verdict ${lead==='urgent'?'urgent':lead}">
+    <div class="v-kick">選んだ所見からの方針（最も優先度の高いもの）</div>
+    <div class="v-main">${ACT_LABEL[lead]}</div>
+    <div class="v-sub">該当する振り分けを優先度順に表示しています。</div>
+   </div>
+   <div class="resblock"><h3>振り分け</h3><div class="triage-bar">${chips}</div></div>
+   <div class="recall"><h3>想定する疾患と検査の狙い</h3>${dxBody}</div>
+   <div class="note">複数の所見が異なる科を指すときは、緊急・腎臓内科を優先しつつ、尿路悪性のスクリーニングも並行します。最終判断は医師が行ってください。</div>
+  </div>`;
+ window.scrollTo({top:document.getElementById("revresult").offsetTop-80,behavior:"smooth"});
+}
+
+/* ===== トップタブ：フロー / 逆引き ===== */
+document.querySelectorAll("#apptabs button").forEach(b=>{
+ b.addEventListener("click",()=>{
+  document.querySelectorAll("#apptabs button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");
+  const t=b.dataset.tab;
+  document.getElementById("flowmode").style.display = t==="flow"?"block":"none";
+  document.getElementById("reversemode").style.display = t==="reverse"?"block":"none";
+ });
+});
+
+/* ===== 起動 ===== */
+buildChecklist();
+renderReverse();
+paint();
+</script>
+</body>
+</html>
