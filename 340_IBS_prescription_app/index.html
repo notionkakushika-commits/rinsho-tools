@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>340 過敏性腸症候群 処方サポート</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --surface: #ffffff;
+      --surface-2: #f0f4f3;
+      --ink: #1f2a2a;
+      --muted: #60706c;
+      --line: #d8e0dc;
+      --green: #2f7d62;
+      --green-2: #e2f2eb;
+      --blue: #2f6095;
+      --blue-2: #e3eef9;
+      --amber: #a66719;
+      --amber-2: #fff0d9;
+      --red: #a54242;
+      --red-2: #fae7e4;
+      --violet: #6d5798;
+      --violet-2: #ece8f5;
+      --shadow: 0 8px 24px rgba(35, 48, 45, .08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .94);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 720;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 36px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+
+    .btn:hover {
+      border-color: #aab9b3;
+      background: #fbfcfb;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.primary {
+      background: var(--green);
+      color: white;
+      border-color: var(--green);
+    }
+
+    main {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 20px 28px;
+      display: grid;
+      grid-template-columns: minmax(360px, 480px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel > .panel-head {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .panel-body {
+      padding: 14px 16px 16px;
+    }
+
+    .form-section {
+      padding: 13px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .form-section:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .form-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+
+    .form-section-title strong {
+      font-size: 14px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .segmented.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .choice input,
+    .check input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .choice span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      text-align: center;
+      cursor: pointer;
+      color: var(--ink);
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    .choice input:checked + span {
+      background: var(--green-2);
+      border-color: var(--green);
+      color: #184f3d;
+      font-weight: 650;
+    }
+
+    .check-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .check span {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      min-height: 34px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      cursor: pointer;
+    }
+
+    .check span::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
+      border: 1px solid #a6b3ad;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .check input:checked + span {
+      background: var(--blue-2);
+      border-color: var(--blue);
+      color: #183d62;
+    }
+
+    .check input:checked + span::before {
+      background: var(--blue);
+      border-color: var(--blue);
+      box-shadow: inset 0 0 0 3px white;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .select-field {
+      display: grid;
+      gap: 5px;
+    }
+
+    .select-field label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      padding: 7px 9px;
+    }
+
+    .result-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .status-band {
+      border: 1px solid var(--line);
+      border-left-width: 6px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--surface-2);
+      margin-bottom: 12px;
+    }
+
+    .status-band.red {
+      border-left-color: var(--red);
+      background: var(--red-2);
+    }
+
+    .status-band.green {
+      border-left-color: var(--green);
+      background: var(--green-2);
+    }
+
+    .status-band.amber {
+      border-left-color: var(--amber);
+      background: var(--amber-2);
+    }
+
+    .status-band.blue {
+      border-left-color: var(--blue);
+      background: var(--blue-2);
+    }
+
+    .status-band.violet {
+      border-left-color: var(--violet);
+      background: var(--violet-2);
+    }
+
+    .status-title {
+      font-size: 16px;
+      font-weight: 750;
+      margin-bottom: 4px;
+    }
+
+    .result-section {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 8px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .result-section h3 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #f8faf9;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-section .content {
+      padding: 11px 12px 12px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.2em;
+    }
+
+    li + li {
+      margin-top: 5px;
+    }
+
+    .drug-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .drug {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 11px;
+      background: #fcfdfc;
+    }
+
+    .drug-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .drug-name {
+      font-weight: 750;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .tag.green {
+      background: var(--green-2);
+      color: #1e654d;
+    }
+
+    .tag.blue {
+      background: var(--blue-2);
+      color: #224f79;
+    }
+
+    .tag.amber {
+      background: var(--amber-2);
+      color: #74480e;
+    }
+
+    .tag.violet {
+      background: var(--violet-2);
+      color: #514073;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .inline-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .copy-area {
+      width: 100%;
+      min-height: 230px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      color: var(--ink);
+      background: #fbfcfb;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      background: #1f2a2a;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 7px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1100px) {
+      main,
+      .result-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .input-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        padding: 12px;
+      }
+
+      .segmented,
+      .segmented.three,
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="header-inner">
+        <div>
+          <h1>340 過敏性腸症候群 処方サポート</h1>
+          <div class="subtitle">Rome IV確認、赤旗除外、Step 1-3の処方候補</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" id="resetBtn" type="button">リセット</button>
+          <button class="btn primary" id="copyBtn" type="button">プランをコピー</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel input-panel">
+        <div class="panel-head">
+          <h2>入力</h2>
+          <span class="tag green">外来用</span>
+        </div>
+        <div class="panel-body">
+          <form id="ibsForm">
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>Rome IV</strong>
+                <span class="hint">腹痛 + 2項目</span>
+              </div>
+              <div class="check-grid">
+                <label class="check"><input type="checkbox" name="rome" value="pain" checked><span>腹痛がある</span></label>
+                <label class="check"><input type="checkbox" name="rome" value="defecation" checked><span>排便に関連する</span></label>
+                <label class="check"><input type="checkbox" name="rome" value="frequency" checked><span>排便頻度の変化に関連</span></label>
+                <label class="check"><input type="checkbox" name="rome" value="form" checked><span>便形状の変化に関連</span></label>
+                <label class="check"><input type="checkbox" name="rome" value="duration" checked><span>6か月以上前から、最近3か月も持続</span></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>赤旗・危険因子</strong>
+                <span class="hint">該当で精査優先</span>
+              </div>
+              <div class="check-grid">
+                <label class="check"><input type="checkbox" name="redFlag" value="fever"><span>発熱、関節痛、炎症反応上昇</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="bleeding"><span>血便、便潜血陽性、貧血</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="weight"><span>予期しない体重減少</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="nocturnal"><span>夜間下痢、持続嘔吐、脱水</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="age50"><span>50歳以降の新規発症</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="family"><span>大腸癌・IBDの既往/家族歴</span></label>
+                <label class="check"><input type="checkbox" name="redFlag" value="exam"><span>腫瘤、腹膜刺激、直腸診で血液付着</span></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>病型</strong>
+                <span class="hint">Bristol便形状で分類</span>
+              </div>
+              <div class="segmented">
+                <label class="choice"><input type="radio" name="subtype" value="D" checked><span>下痢型 IBS-D</span></label>
+                <label class="choice"><input type="radio" name="subtype" value="C"><span>便秘型 IBS-C</span></label>
+                <label class="choice"><input type="radio" name="subtype" value="M"><span>混合型 IBS-M</span></label>
+                <label class="choice"><input type="radio" name="subtype" value="U"><span>分類不能/腹痛優位</span></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>現在の段階</strong>
+                <span class="hint">4週ごとに判定</span>
+              </div>
+              <div class="segmented">
+                <label class="choice"><input type="radio" name="stage" value="step1" checked><span>Step 1未実施</span></label>
+                <label class="choice"><input type="radio" name="stage" value="step2"><span>Step 1で不十分</span></label>
+                <label class="choice"><input type="radio" name="stage" value="step3"><span>Step 2で不十分</span></label>
+                <label class="choice"><input type="radio" name="stage" value="review"><span>診断を再点検</span></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>患者背景</strong>
+              </div>
+              <div class="row">
+                <div class="select-field">
+                  <label for="sex">性別</label>
+                  <select id="sex" name="sex">
+                    <option value="female">女性</option>
+                    <option value="male">男性</option>
+                    <option value="unspecified">指定なし</option>
+                  </select>
+                </div>
+                <div class="select-field">
+                  <label for="ageGroup">年齢</label>
+                  <select id="ageGroup" name="ageGroup">
+                    <option value="adult">成人</option>
+                    <option value="older">高齢者</option>
+                    <option value="child">小児・若年</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">
+                <strong>処方上の注意</strong>
+              </div>
+              <div class="check-grid">
+                <label class="check"><input type="checkbox" name="caution" value="ckd"><span>CKD、eGFR低下、Mg上昇リスク</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="pregnancy"><span>妊娠・授乳の可能性</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="glaucomaBph"><span>緑内障、前立腺肥大、重い心疾患</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="obstruction"><span>腸閉塞疑い、強い腹部膨満</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="acidSuppression"><span>PPI/P-CAB/制酸薬を使用中</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="anxiety"><span>不安・緊張が症状に強く関与</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="depression"><span>抑うつ、睡眠障害、生活障害が強い</span></label>
+                <label class="check"><input type="checkbox" name="caution" value="caps"><span>痛みがほぼ持続し排便との関連が乏しい</span></label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>出力</h2>
+          <span class="tag blue" id="sourceTag">Notion + JSGE 2020</span>
+        </div>
+        <div class="panel-body">
+          <div id="summaryBand" class="status-band"></div>
+          <div class="result-layout">
+            <div>
+              <div class="result-section">
+                <h3>処方候補</h3>
+                <div class="content">
+                  <div id="drugList" class="drug-list"></div>
+                </div>
+              </div>
+
+              <div class="result-section">
+                <h3>避ける・慎重</h3>
+                <div class="content" id="avoidList"></div>
+              </div>
+
+              <div class="result-section">
+                <h3>次の評価</h3>
+                <div class="content" id="followUp"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="result-section">
+                <h3>患者説明</h3>
+                <div class="content" id="patientScript"></div>
+              </div>
+
+              <div class="result-section">
+                <h3>カルテ貼り付け用</h3>
+                <div class="content">
+                  <textarea class="copy-area" id="planText" readonly></textarea>
+                  <div class="small-note">最終処方前に添付文書、保険適用、妊娠、腎機能、併用薬を確認。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast">コピーしました</div>
+
+  <script>
+    const labels = {
+      subtype: {
+        D: "下痢型 IBS-D",
+        C: "便秘型 IBS-C",
+        M: "混合型 IBS-M",
+        U: "分類不能/腹痛優位"
+      },
+      stage: {
+        step1: "Step 1未実施",
+        step2: "Step 1で不十分",
+        step3: "Step 2で不十分",
+        review: "診断を再点検"
+      },
+      sex: {
+        female: "女性",
+        male: "男性",
+        unspecified: "指定なし"
+      },
+      ageGroup: {
+        adult: "成人",
+        older: "高齢者",
+        child: "小児・若年"
+      }
+    };
+
+    const redFlagNames = {
+      fever: "発熱/関節痛/炎症反応",
+      bleeding: "血便/便潜血/貧血",
+      weight: "体重減少",
+      nocturnal: "夜間症状/嘔吐/脱水",
+      age50: "50歳以降発症",
+      family: "大腸癌/IBDの既往・家族歴",
+      exam: "腫瘤/腹膜刺激/直腸診血液"
+    };
+
+    const cautionNames = {
+      ckd: "CKD/Mgリスク",
+      pregnancy: "妊娠・授乳",
+      glaucomaBph: "緑内障/前立腺肥大/重い心疾患",
+      obstruction: "腸閉塞疑い",
+      acidSuppression: "酸分泌抑制薬使用",
+      anxiety: "不安関与",
+      depression: "抑うつ/睡眠障害",
+      caps: "CAPS疑い"
+    };
+
+    function checkedValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+    }
+
+    function radioValue(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : "";
+    }
+
+    function getState() {
+      return {
+        rome: checkedValues("rome"),
+        redFlags: checkedValues("redFlag"),
+        subtype: radioValue("subtype"),
+        stage: radioValue("stage"),
+        sex: document.getElementById("sex").value,
+        ageGroup: document.getElementById("ageGroup").value,
+        cautions: checkedValues("caution")
+      };
+    }
+
+    function meetsRome(state) {
+      const hasPain = state.rome.includes("pain");
+      const duration = state.rome.includes("duration");
+      const features = ["defecation", "frequency", "form"].filter(item => state.rome.includes(item)).length;
+      return hasPain && duration && features >= 2;
+    }
+
+    function tag(text, color) {
+      return `<span class="tag ${color || ""}">${text}</span>`;
+    }
+
+    function drug(name, category, dose, reason, notes, color) {
+      return { name, category, dose, reason, notes, color: color || "green" };
+    }
+
+    function buildPlan(state) {
+      const redFlags = state.redFlags;
+      const romeOk = meetsRome(state);
+      const cautions = state.cautions;
+      const redFlagLabels = redFlags.map(key => redFlagNames[key]);
+      const cautionLabels = cautions.map(key => cautionNames[key]);
+
+      if (redFlags.length) {
+        return {
+          status: "red",
+          title: "IBS治療より精査を優先",
+          message: `赤旗あり：${redFlagLabels.join("、")}`,
+          drugs: [
+            drug("薬物療法は保留", "精査優先", "血算/CRP/便潜血/便培養・C. difficile/腹部画像/下部内視鏡を病態に応じて選択", "大腸癌、IBD、感染性腸炎、虚血性腸炎、膵胆道疾患などを先に評価", ["強い腹痛、血便、発熱、脱水があれば同日評価"], "amber")
+          ],
+          avoids: ["止痢薬で血便・感染性下痢を止めにいかない", "IBS病名で長期処方を開始しない"],
+          follow: ["器質疾患を除外後、Rome IVとBristol便形状で病型を再分類", "診断が戻った時点でStep 1から再開"],
+          patient: "血便や体重減少などがある時は、腸が過敏という説明だけでは片づけません。まず見逃してはいけない病気を確認してから、IBSとしての治療を組み立てます。"
+        };
+      }
+
+      if (!romeOk) {
+        return {
+          status: "amber",
+          title: "IBS確定前として再整理",
+          message: "Rome IVを満たしていません。腹痛の有無、排便との関連、期間を再確認します。",
+          drugs: [
+            drug("症状別の暫定対応", "診断前", "下痢・便秘・腹痛それぞれに短期対症療法を検討", "腹痛を伴わない場合は機能性下痢/便秘、薬剤性、内分泌疾患を優先", ["慢性化、赤旗出現、治療抵抗性なら再評価"], "amber")
+          ],
+          avoids: ["IBSとして段階治療を固定しない", "腹痛が持続し排便関連が乏しい場合はCAPSを考える"],
+          follow: ["症状日誌で腹痛・便形状・食事・ストレスを2-4週追跡", "必要に応じて血算、CRP、TSH、便潜血、便中カルプロテクチン"],
+          patient: "まだIBSと決めきる段階ではありません。症状の並び方を確認しながら、似た病気を落とさずに進めます。"
+        };
+      }
+
+      if (state.stage === "review") {
+        return buildReviewPlan(state, cautionLabels);
+      }
+
+      if (state.stage === "step2") {
+        return buildStep2Plan(state, cautionLabels);
+      }
+
+      if (state.stage === "step3") {
+        return buildStep3Plan(state, cautionLabels);
+      }
+
+      return buildStep1Plan(state, cautionLabels);
+    }
+
+    function commonStep1Drugs(state) {
+      const notes = [];
+      if (state.cautions.includes("acidSuppression")) {
+        notes.push("ポリカルボフィルは酸性条件で効きやすく、PPI/P-CAB/制酸薬で効果減弱に注意");
+      }
+      if (state.cautions.includes("obstruction")) {
+        notes.push("腸閉塞疑いでは高分子重合体や下剤を避け、先に評価");
+      }
+      return [
+        drug("ポリカルボフィルCa（ポリフル/コロネル）", "共通", "0.5-1g 1日3回 毎食後", "便性を整え、下痢型・便秘型・混合型で使いやすい", notes.concat(["十分な水で内服", "狭窄・閉塞疑いでは避ける"]), "green"),
+        drug("トリメブチン（セレキノン）", "共通", "100-200mg 1日3回 毎食後", "消化管運動調整薬として腹痛・便通異常に広く使う", ["効果はマイルド。4週で判定"], "green"),
+        drug("プロバイオティクス", "共通", "ミヤBM、ビオフェルミン、ビオスリーなど 1日3回", "安全性が高く、初期治療に組み込みやすい", ["菌種ごとの反応差あり。漫然とせず症状日誌で判定"], "green")
+      ];
+    }
+
+    function buildStep1Plan(state, cautionLabels) {
+      const drugs = commonStep1Drugs(state);
+      const avoids = [];
+
+      if (state.subtype === "D") {
+        const ramosetronDose = state.sex === "male" ? "5μg 1日1回 朝食後、最大10μg/日" : "2.5μg 1日1回 朝食後、最大5μg/日";
+        drugs.unshift(drug("ラモセトロン（イリボー）", "IBS-D 第一候補", ramosetronDose, "下痢型IBSの下痢・腹痛・便意切迫に合う", ["便秘、硬便、腹部膨満、血便/強い腹痛なら中止し虚血性腸炎を評価", "便秘型・混合型では避ける"], "blue"));
+        drugs.push(drug("桂枝加芍薬湯", "腹痛/下痢の補助", "2.5g 1日3回 食前または食間", "腹痛を伴う下痢型で選択肢", ["甘草含有。低K、浮腫、血圧上昇に注意"], "violet"));
+        drugs.push(drug("ロペラミド、ブチルスコポラミン", "頓用", "ロペラミド1mg頓用、ブスコパン10mg頓用", "会議・移動前の下痢、腹痛発作のレスキュー", ["感染性下痢、血便、発熱では止痢薬を避ける", "抗コリン薬は緑内障/前立腺肥大/重い心疾患で避ける"], "amber"));
+      }
+
+      if (state.subtype === "C") {
+        drugs.unshift(drug("リナクロチド（リンゼス）", "IBS-C 第一候補", "0.5mg 1日1回 食前。下痢が強ければ0.25mg", "便秘型IBSで腹痛・腹部膨満を伴う便秘に合う", ["下痢・脱水では減量/中止", "腸閉塞疑いでは避ける"], "blue"));
+        drugs.push(drug("大建中湯", "冷え/膨満/腹痛", "5g 1日3回 食前または食間", "腹部膨満、冷え、腹痛を伴う便秘で選択肢", ["甘草含有なし。腹痛が強く器質疾患疑いなら先に評価"], "violet"));
+        drugs.push(drug("酸化Mg、エロビキシバット、刺激性下剤", "追加/頓用", "Mgは少量から。エロビキシバット10mg食前。センノシド等は頓用中心", "便秘残存時に便秘治療として追加", ["CKD/高齢者はMg慎重", "刺激性下剤は連用を避ける"], "amber"));
+        drugs.push(drug("ルビプロストン（アミティーザ）", "代替", "24μg 1日2回 朝夕食後", "慢性便秘症合併で選択肢", ["IBS単独病名では保険適用を確認", "悪心が多く食後内服"], "amber"));
+      }
+
+      if (state.subtype === "M" || state.subtype === "U") {
+        drugs.unshift(drug("共通薬を軸に単剤から", "IBS-M/U", "ポリカルボフィルCa、トリメブチン、プロバイオティクスから選択", "下痢にも便秘にも振れるため、便を固めすぎる/緩めすぎる薬を最初から強く入れない", ["Bristol便形状と週ごとの優勢症状で微調整"], "blue"));
+        drugs.push(drug("抗コリン薬または桂枝加芍薬湯", "腹痛頓用/補助", "ブスコパン10mg頓用、または桂枝加芍薬湯2.5g 1日3回", "腹痛優位に使いやすい", ["抗コリン禁忌を確認", "便秘が強い時は抗コリンで悪化し得る"], "violet"));
+      }
+
+      if (state.cautions.includes("glaucomaBph")) avoids.push("ブチルスコポラミンなど抗コリン薬は避ける");
+      if (state.cautions.includes("ckd") || state.ageGroup === "older") avoids.push("酸化Mgは高Mg血症に注意し、必要最低量で採血フォロー");
+      if (state.cautions.includes("pregnancy")) avoids.push("妊娠・授乳では添付文書と産科確認を優先");
+      if (state.cautions.includes("caps")) avoids.push("排便関連が乏しい持続痛はCAPS/神経障害性疼痛として再評価");
+
+      return {
+        status: "green",
+        title: "Step 1：消化管主体の治療",
+        message: `${labels.subtype[state.subtype]}。生活・食事調整と病型別薬剤を4週間で判定します。`,
+        drugs,
+        avoids,
+        follow: [
+          "4週後に腹痛、便形状、便意切迫、QOLで判定",
+          "脂質、カフェイン、香辛料、乳製品、FODMAPを症状日誌と対応させる",
+          "改善不十分ならStep 2へ。新しい赤旗が出たら精査に戻る"
+        ],
+        patient: "IBSは腸が刺激に過敏になり、脳と腸の連絡が過剰に反応している状態です。まず腸の動きと便の性状を整える治療から始め、4週間ごとに合う薬へ調整します。"
+      };
+    }
+
+    function buildStep2Plan(state, cautionLabels) {
+      const drugs = [];
+      drugs.push(drug("Step 1薬の継続/組み替え", "土台", "部分効果がある薬は残し、無効薬は整理", "Step 2でも便通型に合った消化管薬は土台として使う", ["服薬タイミング、頓用の使い方、食事誘因を再確認"], "green"));
+      if (state.cautions.includes("anxiety")) {
+        drugs.push(drug("タンドスピロン（セディール）", "不安優位", "5-10mg 1日3回から。症状により調整", "BZDを避けたい不安・緊張関与例で候補", ["即効性は弱い。2-4週で判定", "重症不安、希死念慮、生活破綻は精神科連携"], "blue"));
+      } else {
+        drugs.push(drug("不安評価後にタンドスピロン", "選択肢", "5-10mg 1日3回から", "不安・緊張が腹痛や便意切迫を増幅している時に検討", ["眠気は少なめだが効果はマイルド"], "blue"));
+      }
+      if (state.cautions.includes("depression")) {
+        drugs.push(drug("SSRI/SNRIまたは精神科連携", "抑うつ/睡眠障害", "少量から開始し副作用を確認", "抑うつ・不安・睡眠障害が強いとIBS症状も遷延しやすい", ["導入は自殺念慮、双極性、併用薬を確認", "専門医併診を低めの閾値で"], "violet"));
+      }
+      if (state.subtype === "D" || state.subtype === "U") {
+        drugs.push(drug("低用量TCAを検討", "疼痛/下痢優位", "例：アミトリプチリン等を少量就寝前から", "内臓痛覚過敏、下痢優位、睡眠不良に合うことがある", ["便秘、口渇、眠気、心疾患、高齢者で慎重", "院内運用と専門医連携を確認"], "amber"));
+      }
+      const avoids = ["Step 1が完全無効なら診断を再点検", "ベンゾジアゼピンの漫然使用は避ける"];
+      if (state.cautions.includes("caps")) avoids.push("CAPS疑いでは通常の整腸薬追加だけで引っ張らない");
+      return {
+        status: "blue",
+        title: "Step 2：中枢機能・心理面を含める",
+        message: "消化管主体の治療で不十分。心理的異常、不安、抑うつ、睡眠、疼痛過敏を評価します。",
+        drugs,
+        avoids,
+        follow: [
+          "2-4週で副作用、4-8週で症状変化を判定",
+          "希死念慮、双極性疑い、重症不安、社会生活破綻は専門医へ",
+          "便通型が変わったらStep 1薬を再選択"
+        ],
+        patient: "腸だけでなく、痛みや便意を感じる神経の過敏さも治療対象になります。心の問題という意味ではなく、脳腸相関を整える段階です。"
+      };
+    }
+
+    function buildStep3Plan(state, cautionLabels) {
+      const drugs = [
+        drug("心理療法", "Step 3", "認知行動療法、リラクセーション、催眠療法、ACTなど", "薬剤だけで改善しないIBSでは有効な治療選択肢", ["心療内科/精神科/心理士との連携を検討"], "violet"),
+        drug("専門医で再評価", "再診断", "消化器専門医、心療内科、精神科", "IBD、microscopic colitis、胆汁酸性下痢、CAPSなどを再確認", ["赤旗がなくても治療抵抗性なら検査を追加"], "blue"),
+        drug("併用療法の整理", "安全確認", "有効薬のみ残し、副作用薬を減らす", "下痢と便秘を同時に悪化させる処方を避ける", ["止痢薬、下剤、抗コリン薬の過不足を点検"], "green")
+      ];
+      return {
+        status: "violet",
+        title: "Step 3：心理療法・専門連携",
+        message: "Step 2でも不十分。心理療法と診断の再点検をセットで進めます。",
+        drugs,
+        avoids: ["薬を増やすだけの長期化", "症状変化や新規赤旗の見落とし", "患者に「気のせい」と伝える説明"],
+        follow: [
+          "生活障害、欠勤、外出回避、食事制限の程度を評価",
+          "腹痛が持続し排便関連が乏しければCAPSを検討",
+          "治療目標を症状ゼロではなく生活機能回復に置く"
+        ],
+        patient: "ここからは薬を増やすより、痛みや便意への過敏な反応を下げる治療を組み合わせます。目標は症状を完全に消すことだけでなく、生活の自由度を戻すことです。"
+      };
+    }
+
+    function buildReviewPlan(state, cautionLabels) {
+      return {
+        status: "amber",
+        title: "診断を戻して再点検",
+        message: "治療反応が悪い、症状が変化した、またはCAPS/器質疾患が気になる状態です。",
+        drugs: [
+          drug("再評価セット", "検査/問診", "血算、CRP、TSH、便潜血、便中カルプロテクチン、便培養/C. difficile、画像、内視鏡を選択", "IBSとして固定する前に鑑別を戻す", ["薬剤性、内分泌、IBD、microscopic colitis、胆汁酸性下痢、膵胆道、婦人科を確認"], "amber"),
+          drug("症状日誌", "再分類", "腹痛、Bristol、食事、月経、ストレス、服薬を2-4週記録", "IBS-D/C/M/Uの分類が変わることがある", ["記録をもとにStep 1へ戻す"], "green")
+        ],
+        avoids: ["診断の見直しなしに薬を上乗せし続ける", "腹痛のない下痢/便秘をIBSとして扱う"],
+        follow: ["赤旗が出た時点で精査優先", "専門医紹介の閾値を下げる"],
+        patient: "治療が効きにくい時は、薬が弱いとは限りません。病名や病型が少し違う可能性を確認して、次の治療を選び直します。"
+      };
+    }
+
+    function render() {
+      const state = getState();
+      const plan = buildPlan(state);
+      const band = document.getElementById("summaryBand");
+      band.className = `status-band ${plan.status}`;
+      band.innerHTML = `
+        <div class="status-title">${plan.title}</div>
+        <div>${plan.message}</div>
+        <div class="inline-tags">
+          ${tag(labels.subtype[state.subtype], "green")}
+          ${tag(labels.stage[state.stage], "blue")}
+          ${tag(labels.sex[state.sex], "")}
+          ${tag(labels.ageGroup[state.ageGroup], "")}
+        </div>
+      `;
+
+      document.getElementById("drugList").innerHTML = plan.drugs.map(item => `
+        <div class="drug">
+          <div class="drug-head">
+            <div class="drug-name">${item.name}</div>
+            ${tag(item.category, item.color)}
+          </div>
+          <div><strong>処方例：</strong>${item.dose}</div>
+          <div><strong>採用理由：</strong>${item.reason}</div>
+          ${item.notes && item.notes.length ? `<ul class="meta">${item.notes.map(note => `<li>${note}</li>`).join("")}</ul>` : ""}
+        </div>
+      `).join("");
+
+      const avoidItems = plan.avoids.length ? plan.avoids : ["現時点で追加の回避条件なし。添付文書と患者背景は必ず確認。"];
+      document.getElementById("avoidList").innerHTML = `<ul>${avoidItems.map(item => `<li>${item}</li>`).join("")}</ul>`;
+      document.getElementById("followUp").innerHTML = `<ul>${plan.follow.map(item => `<li>${item}</li>`).join("")}</ul>`;
+      document.getElementById("patientScript").textContent = plan.patient;
+
+      const redFlags = state.redFlags.map(key => redFlagNames[key]).join("、") || "なし";
+      const cautions = state.cautions.map(key => cautionNames[key]).join("、") || "なし";
+      const planText = [
+        `340 過敏性腸症候群 処方プラン`,
+        `病型：${labels.subtype[state.subtype]}`,
+        `段階：${labels.stage[state.stage]}`,
+        `Rome IV：${meetsRome(state) ? "満たす" : "未確定"}`,
+        `赤旗：${redFlags}`,
+        `注意：${cautions}`,
+        ``,
+        `結論：${plan.title}`,
+        plan.message,
+        ``,
+        `処方候補：`,
+        ...plan.drugs.map((item, index) => `${index + 1}. ${item.name}｜${item.dose}｜${item.reason}`),
+        ``,
+        `避ける・慎重：`,
+        ...avoidItems.map(item => `- ${item}`),
+        ``,
+        `次の評価：`,
+        ...plan.follow.map(item => `- ${item}`),
+        ``,
+        `患者説明：${plan.patient}`
+      ].join("\n");
+      document.getElementById("planText").value = planText;
+    }
+
+    function showToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    document.getElementById("ibsForm").addEventListener("change", render);
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.getElementById("ibsForm").reset();
+      render();
+    });
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const text = document.getElementById("planText").value;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast();
+      } catch (err) {
+        document.getElementById("planText").select();
+        document.execCommand("copy");
+        showToast();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
+
