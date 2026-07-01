@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臨床論文・化学療法 用語ダッシュボード</title>
+<style>
+  :root{
+    --bg:#ece3d1;        /* 温かいクリーム（Claude風・真っ白ではない）*/
+    --card:#faf6ec;      /* カード：明るい生成り */
+    --panel:#f3ecdc;     /* 検索・チップ地 */
+    --ink:#2c2820;       /* 本文：濃い茶墨 */
+    --sub:#6f6552;       /* 補助テキスト */
+    --line:#dccfb6;      /* 罫線 */
+    --accent:#c1633b;    /* テラコッタ（Claudeのアクセント）*/
+    --green:#2f8a5f;     /* 明色地でも読める緑 */
+    --amber:#a86a12;     /* 明色地でも読める琥珀 */
+    --pill:#ebe0ca;
+    --figbg:#17222e;     /* 図の下地（濃色パネル）*/
+    --shadow:0 4px 16px rgba(90,68,32,.13);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+    font-size:18px;line-height:1.85;-webkit-font-smoothing:antialiased;padding-bottom:64px;
+  }
+  header{
+    position:sticky;top:0;z-index:20;background:rgba(236,227,209,.94);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:15px 16px 12px;
+  }
+  h1{font-size:23px;margin:0 0 3px;letter-spacing:.02em;font-weight:800;}
+  .subtitle{font-size:15px;color:var(--sub);margin:0 0 12px;}
+  .search{width:100%;border:1.5px solid var(--line);background:#fffdf7;color:var(--ink);
+    border-radius:12px;padding:13px 16px;font-size:18px;outline:none;}
+  .search::placeholder{color:#a99c82;}
+  .search:focus{border-color:var(--accent);}
+  .cats{display:flex;gap:9px;overflow-x:auto;padding:13px 16px 4px;scrollbar-width:none;}
+  .cats::-webkit-scrollbar{display:none;}
+  .cat-chip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--panel);color:#5d5442;
+    border-radius:999px;padding:9px 16px;font-size:16px;cursor:pointer;white-space:nowrap;
+    transition:.15s;font-weight:700;}
+  .cat-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  main{max-width:760px;margin:0 auto;padding:6px 16px;}
+  .count{font-size:14px;color:var(--sub);padding:4px 16px 0;max-width:760px;margin:0 auto;}
+  /* dashboard */
+  .dash{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 6px;}
+  .dash-card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+    padding:16px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);}
+  .dash-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .dash-card:active{transform:scale(.98);}
+  .dash-card .ic{font-size:26px;}
+  .dash-card .nm{font-weight:800;font-size:17px;margin:7px 0 3px;}
+  .dash-card .ct{font-size:13px;color:var(--sub);}
+  .dash-hero{grid-column:1/-1;background:linear-gradient(120deg,#f7eed9,#f1e3c8);
+    border:1.5px solid var(--line);border-radius:16px;padding:16px 18px;}
+  .dash-hero h2{margin:0 0 5px;font-size:19px;font-weight:800;}
+  .dash-hero p{margin:0;font-size:15px;color:#5d5442;}
+  /* sections */
+  .section-title{font-size:18px;color:#256e4b;font-weight:800;margin:26px 4px 12px;
+    display:flex;align-items:center;gap:9px;letter-spacing:.02em;}
+  .section-title .n{font-size:14px;color:var(--sub);font-weight:600;}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+  .term{background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+    overflow:hidden;box-shadow:var(--shadow);}
+  .term-btn{width:100%;text-align:left;background:none;border:none;color:var(--ink);
+    padding:17px 18px;cursor:pointer;display:flex;align-items:center;gap:12px;
+    font-size:20px;font-weight:800;}
+  .term-btn .en{font-size:14px;color:var(--sub);font-weight:600;margin-left:auto;text-align:right;}
+  .chev{width:11px;height:11px;border-right:2.5px solid var(--sub);border-bottom:2.5px solid var(--sub);
+    transform:rotate(45deg);transition:.2s;flex:0 0 auto;margin-left:4px;}
+  .term.open .chev{transform:rotate(-135deg);}
+  .body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .term.open .body{max-height:2600px;border-top:1.5px solid var(--line);}
+  .body-in{padding:16px 18px 20px;}
+  .lbl{font-size:13px;font-weight:800;letter-spacing:.06em;
+    display:inline-block;margin-bottom:7px;padding:3px 10px;border-radius:7px;}
+  .lbl-hard{color:#5a5140;background:#e7dcc3;}
+  .lbl-easy{color:#fff;background:var(--green);}
+  .lbl-use{color:#fff;background:var(--amber);}
+  .def{font-size:18px;margin:0 0 14px;}
+  .figwrap{background:var(--figbg);border-radius:12px;padding:10px 8px 6px;margin:0 0 14px;
+    border:1px solid #22303f;}
+  .figwrap svg{margin:0 auto;}
+  .easy{background:#e7f4ec;border-left:5px solid var(--green);border-radius:9px;
+    padding:11px 14px 13px;font-size:17.5px;color:#22352b;margin:0 0 13px;}
+  .use{background:#f7edd6;border-left:5px solid var(--amber);border-radius:9px;
+    padding:11px 14px 13px;font-size:17px;color:#3a3220;margin:0 0 13px;}
+  .def b{color:#215c3f;}
+  .easy b{color:#1d6b47;font-weight:800;}
+  .use b{color:#8a5610;font-weight:800;}
+  .formula{font-family:"SFMono-Regular",Menlo,monospace;background:#f2ead8;border:1.5px solid var(--line);
+    border-radius:9px;padding:11px 14px;font-size:15.5px;color:#2f4f6b;margin:0 0 13px;overflow-x:auto;}
+  .tag{display:inline-block;background:var(--pill);color:#6e6350;border-radius:7px;
+    padding:3px 10px;font-size:13.5px;margin:0 7px 7px 0;font-weight:700;}
+  svg{display:block;max-width:100%;height:auto;}
+  .empty{text-align:center;color:var(--sub);padding:50px 20px;font-size:17px;}
+  footer{text-align:center;font-size:14px;color:var(--sub);padding:30px 16px 10px;}
+  .hl{background:#ffd873;border-radius:3px;padding:0 2px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>臨床論文・化学療法 用語ダッシュボード</h1>
+  <p class="subtitle">押すと開きます — <b style="color:var(--sub)">一般的な説明</b> ＋ <b style="color:var(--green)">かみくだいた説明</b></p>
+  <input class="search" id="search" placeholder="🔍 用語を検索（OS・ハザード比・第Ⅲ相・レジメン…）" autocomplete="off">
+</header>
+<div class="cats" id="cats"></div>
+<div class="count" id="count"></div>
+<main id="main"></main>
+<footer>医師の臨床判断・論文読解を補助する参考資料です。定義は代表的なものに基づきます。</footer>
+
+<script>
+/* ===== 図（SVG）===== */
+const FIG = {
+  survcurve:`<svg viewBox="0 0 250 180" role="img" aria-label="OS/PFS曲線">
+    <line x1="42" y1="150" x2="230" y2="150" stroke="#2a3b4d"/><line x1="42" y1="150" x2="42" y2="18" stroke="#2a3b4d"/>
+    <path d="M42 28 H82 V44 H120 V54 H165 V78 H230" fill="none" stroke="#38d9a9" stroke-width="2.5"/>
+    <path d="M42 28 H72 V64 H108 V92 H150 V118 H230" fill="none" stroke="#ffb454" stroke-width="2.5"/>
+    <line x1="42" y1="89" x2="230" y2="89" stroke="#4a5b6d" stroke-dasharray="3 3"/><text x="46" y="86" fill="#9fb2c6" font-size="9">50%</text>
+    <line x1="118" y1="89" x2="118" y2="150" stroke="#ffb454" stroke-dasharray="2 2"/><line x1="185" y1="89" x2="185" y2="150" stroke="#38d9a9" stroke-dasharray="2 2"/>
+    <text x="150" y="35" fill="#38d9a9" font-size="10">治療群</text><text x="150" y="140" fill="#ffb454" font-size="10">対照群</text>
+    <text x="118" y="164" text-anchor="middle" fill="#ffb454" font-size="9">中央値</text><text x="185" y="164" text-anchor="middle" fill="#38d9a9" font-size="9">中央値</text>
+    <text x="14" y="98" fill="#9fb2c6" font-size="10" transform="rotate(-90 14 98)">生存率</text><text x="135" y="176" text-anchor="middle" fill="#9fb2c6" font-size="9">時間（月）</text></svg>`,
+  km:`<svg viewBox="0 0 240 175" role="img" aria-label="カプランマイヤー曲線">
+    <line x1="40" y1="148" x2="220" y2="148" stroke="#2a3b4d"/><line x1="40" y1="148" x2="40" y2="18" stroke="#2a3b4d"/>
+    <path d="M40 28 H90 V48 H130 V56 H170 V78 H220" fill="none" stroke="#38d9a9" stroke-width="2.5"/>
+    <path d="M40 28 H80 V68 H120 V93 H160 V118 H220" fill="none" stroke="#ffb454" stroke-width="2.5"/>
+    <path d="M96 48 l0 -6 M150 56 l0 -6" stroke="#38d9a9" stroke-width="1.5"/>
+    <text x="150" y="42" fill="#38d9a9" font-size="10">治療群</text><text x="150" y="135" fill="#ffb454" font-size="10">対照群</text>
+    <text x="130" y="168" text-anchor="middle" fill="#9fb2c6" font-size="9">時間 →（ヒゲ＝打ち切り）</text>
+    <text x="14" y="95" fill="#9fb2c6" font-size="10" transform="rotate(-90 14 95)">生存率</text></svg>`,
+  ci:`<svg viewBox="0 0 260 150" role="img" aria-label="信頼区間">
+    <line x1="130" y1="15" x2="130" y2="135" stroke="#4a5b6d" stroke-dasharray="4 4"/>
+    <text x="130" y="12" text-anchor="middle" fill="#9fb2c6" font-size="9">効果なし(1.0)</text>
+    <line x1="60" y1="45" x2="150" y2="45" stroke="#38d9a9" stroke-width="2"/><rect x="100" y="40" width="10" height="10" fill="#38d9a9"/>
+    <text x="165" y="49" fill="#38d9a9" font-size="9">1をまたがない=有意</text>
+    <line x1="70" y1="90" x2="205" y2="90" stroke="#ffb454" stroke-width="2"/><rect x="150" y="85" width="10" height="10" fill="#ffb454"/>
+    <text x="120" y="115" fill="#ffb454" font-size="9">1をまたぐ=非有意</text>
+    <text x="35" y="135" fill="#9fb2c6" font-size="9">← 効果大　　　効果小 →</text></svg>`,
+  noninf:`<svg viewBox="0 0 280 130" role="img" aria-label="非劣性の判定">
+    <line x1="150" y1="18" x2="150" y2="105" stroke="#4a5b6d" stroke-dasharray="4 4"/>
+    <text x="150" y="14" text-anchor="middle" fill="#9fb2c6" font-size="9">対照と同等(HR=1)</text>
+    <line x1="215" y1="18" x2="215" y2="105" stroke="#ffb454" stroke-dasharray="4 4"/>
+    <text x="240" y="42" fill="#ffb454" font-size="9">非劣性</text><text x="240" y="54" fill="#ffb454" font-size="9">の限界Δ</text>
+    <line x1="95" y1="70" x2="195" y2="70" stroke="#38d9a9" stroke-width="2"/><rect x="130" y="65" width="10" height="10" fill="#38d9a9"/>
+    <text x="34" y="74" fill="#38d9a9" font-size="9">上限がΔ内</text>
+    <text x="40" y="120" fill="#9fb2c6" font-size="9">← 治療が良い　　劣る →</text></svg>`,
+  surrogate:`<svg viewBox="0 0 280 90" role="img" aria-label="代替エンドポイント">
+    <rect x="14" y="30" width="90" height="34" rx="6" fill="#24374a" stroke="#4aa8ff"/>
+    <text x="59" y="46" text-anchor="middle" fill="#4aa8ff" font-size="10">代替(サロゲート)</text><text x="59" y="58" text-anchor="middle" fill="#9fb2c6" font-size="9">腫瘍縮小・PFS</text>
+    <path d="M108 47 H150" stroke="#9fb2c6" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#ar2)"/>
+    <text x="129" y="40" text-anchor="middle" fill="#ffb454" font-size="9">?</text>
+    <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="#9fb2c6"/></marker></defs>
+    <rect x="154" y="30" width="112" height="34" rx="6" fill="#183a2f" stroke="#38d9a9"/>
+    <text x="210" y="46" text-anchor="middle" fill="#38d9a9" font-size="10">真のエンドポイント</text><text x="210" y="58" text-anchor="middle" fill="#9fb2c6" font-size="9">生存・死亡</text></svg>`,
+  phase:`<svg viewBox="0 0 280 70" role="img" aria-label="臨床試験の相">
+    <rect x="8" y="20" width="58" height="34" rx="6" fill="#1d2b3a" stroke="#2a3b4d"/><text x="37" y="37" text-anchor="middle" fill="#4aa8ff" font-size="12" font-weight="700">Ⅰ相</text><text x="37" y="49" text-anchor="middle" fill="#9fb2c6" font-size="8">安全性</text>
+    <rect x="74" y="20" width="58" height="34" rx="6" fill="#1d2b3a" stroke="#2a3b4d"/><text x="103" y="37" text-anchor="middle" fill="#4aa8ff" font-size="12" font-weight="700">Ⅱ相</text><text x="103" y="49" text-anchor="middle" fill="#9fb2c6" font-size="8">有効性探索</text>
+    <rect x="140" y="20" width="58" height="34" rx="6" fill="#183a2f" stroke="#38d9a9"/><text x="169" y="37" text-anchor="middle" fill="#38d9a9" font-size="12" font-weight="700">Ⅲ相</text><text x="169" y="49" text-anchor="middle" fill="#9fb2c6" font-size="8">検証・承認</text>
+    <rect x="206" y="20" width="66" height="34" rx="6" fill="#1d2b3a" stroke="#2a3b4d"/><text x="239" y="37" text-anchor="middle" fill="#ffb454" font-size="12" font-weight="700">Ⅳ相</text><text x="239" y="49" text-anchor="middle" fill="#9fb2c6" font-size="8">市販後</text></svg>`,
+  confusion:`<svg viewBox="0 0 320 180" role="img" aria-label="2x2 分割表">
+    <text x="160" y="14" text-anchor="middle" fill="#9fb2c6" font-size="11">実際の疾患</text>
+    <text x="120" y="30" text-anchor="middle" fill="#38d9a9" font-size="11">あり</text><text x="230" y="30" text-anchor="middle" fill="#ffb454" font-size="11">なし</text>
+    <text x="14" y="70" fill="#9fb2c6" font-size="11" transform="rotate(-90 14 70)">検査</text>
+    <text x="30" y="70" fill="#38d9a9" font-size="11">陽</text><text x="30" y="130" fill="#ffb454" font-size="11">陰</text>
+    <rect x="65" y="40" width="110" height="55" fill="#183a2f" stroke="#38d9a9"/><rect x="175" y="40" width="110" height="55" fill="#3a2a18" stroke="#ffb454"/>
+    <rect x="65" y="95" width="110" height="55" fill="#3a2a18" stroke="#ffb454"/><rect x="175" y="95" width="110" height="55" fill="#183a2f" stroke="#38d9a9"/>
+    <text x="120" y="65" text-anchor="middle" fill="#e8eef5" font-size="13" font-weight="700">真陽性</text><text x="120" y="82" text-anchor="middle" fill="#9fb2c6" font-size="11">TP</text>
+    <text x="230" y="65" text-anchor="middle" fill="#e8eef5" font-size="13" font-weight="700">偽陽性</text><text x="230" y="82" text-anchor="middle" fill="#9fb2c6" font-size="11">FP</text>
+    <text x="120" y="120" text-anchor="middle" fill="#e8eef5" font-size="13" font-weight="700">偽陰性</text><text x="120" y="137" text-anchor="middle" fill="#9fb2c6" font-size="11">FN</text>
+    <text x="230" y="120" text-anchor="middle" fill="#e8eef5" font-size="13" font-weight="700">真陰性</text><text x="230" y="137" text-anchor="middle" fill="#9fb2c6" font-size="11">TN</text></svg>`,
+  roc:`<svg viewBox="0 0 240 200" role="img" aria-label="ROC曲線">
+    <line x1="40" y1="170" x2="220" y2="170" stroke="#2a3b4d"/><line x1="40" y1="170" x2="40" y2="20" stroke="#2a3b4d"/>
+    <line x1="40" y1="170" x2="220" y2="20" stroke="#4a5b6d" stroke-dasharray="4 4"/>
+    <path d="M40 170 Q55 60 220 20" fill="none" stroke="#4aa8ff" stroke-width="2.5"/>
+    <text x="130" y="192" text-anchor="middle" fill="#9fb2c6" font-size="10">偽陽性率（1−特異度）</text>
+    <text x="14" y="95" fill="#9fb2c6" font-size="10" transform="rotate(-90 14 95)">感度</text>
+    <text x="150" y="70" fill="#4aa8ff" font-size="10">AUCが大きいほど良い</text></svg>`,
+  pretest:`<svg viewBox="0 0 260 120" role="img" aria-label="検査前後の確率">
+    <rect x="20" y="45" width="60" height="30" rx="6" fill="#24374a" stroke="#2a3b4d"/><text x="50" y="64" text-anchor="middle" fill="#e8eef5" font-size="11">検査前<tspan font-size="9">確率</tspan></text>
+    <text x="110" y="55" text-anchor="middle" fill="#4aa8ff" font-size="10">検査</text><text x="110" y="68" text-anchor="middle" fill="#9fb2c6" font-size="9">＋尤度比</text>
+    <path d="M85 60 H150" stroke="#4aa8ff" stroke-width="2" marker-end="url(#ar)"/>
+    <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="#4aa8ff"/></marker></defs>
+    <rect x="160" y="45" width="80" height="30" rx="6" fill="#183a2f" stroke="#38d9a9"/><text x="200" y="64" text-anchor="middle" fill="#e8eef5" font-size="11">検査後<tspan font-size="9">確率</tspan></text></svg>`,
+  ps:`<svg viewBox="0 0 280 66" role="img" aria-label="PS 0-4">
+    <rect x="8" y="30" width="48" height="28" rx="5" fill="#183a2f" stroke="#38d9a9"/><text x="32" y="24" text-anchor="middle" fill="#38d9a9" font-size="11" font-weight="700">0</text><text x="32" y="48" text-anchor="middle" fill="#cfe" font-size="8">全く普通</text>
+    <rect x="62" y="30" width="48" height="28" rx="5" fill="#1d2b3a" stroke="#2a3b4d"/><text x="86" y="24" text-anchor="middle" fill="#e8eef5" font-size="11" font-weight="700">1</text><text x="86" y="48" text-anchor="middle" fill="#9fb2c6" font-size="8">軽作業可</text>
+    <rect x="116" y="30" width="48" height="28" rx="5" fill="#1d2b3a" stroke="#2a3b4d"/><text x="140" y="24" text-anchor="middle" fill="#e8eef5" font-size="11" font-weight="700">2</text><text x="140" y="48" text-anchor="middle" fill="#9fb2c6" font-size="8">日中半分↑起</text>
+    <rect x="170" y="30" width="48" height="28" rx="5" fill="#3a2a18" stroke="#ffb454"/><text x="194" y="24" text-anchor="middle" fill="#ffb454" font-size="11" font-weight="700">3</text><text x="194" y="48" text-anchor="middle" fill="#f2e2cb" font-size="8">半分↑臥床</text>
+    <rect x="224" y="30" width="48" height="28" rx="5" fill="#3a1a1a" stroke="#ff7676"/><text x="248" y="24" text-anchor="middle" fill="#ff7676" font-size="11" font-weight="700">4</text><text x="248" y="48" text-anchor="middle" fill="#f2cbcb" font-size="8">終日臥床</text></svg>`,
+  line:`<svg viewBox="0 0 280 70" role="img" aria-label="治療ライン">
+    <rect x="8" y="24" width="74" height="34" rx="6" fill="#183a2f" stroke="#38d9a9"/><text x="45" y="40" text-anchor="middle" fill="#38d9a9" font-size="10" font-weight="700">一次治療</text><text x="45" y="52" text-anchor="middle" fill="#9fb2c6" font-size="8">最初の標準</text>
+    <path d="M84 41 H104" stroke="#9fb2c6" stroke-width="2" marker-end="url(#ar3)"/><text x="94" y="20" text-anchor="middle" fill="#ffb454" font-size="8">増悪</text>
+    <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="#9fb2c6"/></marker></defs>
+    <rect x="106" y="24" width="74" height="34" rx="6" fill="#1d2b3a" stroke="#2a3b4d"/><text x="143" y="40" text-anchor="middle" fill="#e8eef5" font-size="10" font-weight="700">二次治療</text><text x="143" y="52" text-anchor="middle" fill="#9fb2c6" font-size="8">効かなくなったら</text>
+    <path d="M182 41 H202" stroke="#9fb2c6" stroke-width="2" marker-end="url(#ar3)"/>
+    <rect x="204" y="24" width="70" height="34" rx="6" fill="#1d2b3a" stroke="#2a3b4d"/><text x="239" y="40" text-anchor="middle" fill="#e8eef5" font-size="10" font-weight="700">三次…</text><text x="239" y="52" text-anchor="middle" fill="#9fb2c6" font-size="8">以降</text></svg>`
+};
+
+/* ===== データ ===== */
+const DATA = [
+{cat:"② 臨床試験のデザイン", icon:"🧪", ord:2, note:"どんな試験で調べたか（相・比較の型）", items:[
+  {t:"ランダム化比較試験（RCT）", en:"Randomized controlled trial", tags:["最高水準"],
+   def:"対象を無作為に治療群と対照群へ割り付け、両群を比較して効果を判定する前向き試験。",
+   easy:"参加者を<b>くじ引き</b>で2グループに分けて、片方に新しい治療、片方に比較の治療をして結果を比べるやり方。くじ引きだから年齢や重症度などの差が両群でほぼ揃う。",
+   use:"「新薬で予後が伸びた」を<b>いちばん信頼できる形</b>で示せる。ガイドラインの根拠は多くがこれ。"},
+  {t:"第Ⅰ相試験", en:"Phase I", tags:["安全性","用量"], fig:"phase",
+   def:"新薬をヒトに初めて用い、安全性・用量・薬物動態を調べる少人数の試験。",
+   easy:"「どれくらいの量なら人が<b>耐えられるか</b>」を確かめる最初の段階。効くかどうかより、まず<b>安全に使える量</b>を探す。",
+   use:"論文で「第Ⅰ相」とあれば、まだ効果は未確認の初期段階だと分かる。"},
+  {t:"第Ⅱ相試験", en:"Phase II", tags:["有効性の探索"], fig:"phase",
+   def:"一定の安全用量で、対象疾患への有効性の兆しを探索する小〜中規模の試験。",
+   easy:"「この量で<b>本当に効きそうか</b>」を小さめの規模で試す段階。奏効率などで“見込み”を確認する。",
+   use:"第Ⅱ相で良い結果でも、<b>大規模の第Ⅲ相でひっくり返ることが多い</b>と知っておける。"},
+  {t:"第Ⅲ相試験", en:"Phase III", tags:["検証","承認の根拠"], fig:"phase",
+   def:"標準治療と比較し、有効性・安全性を検証する大規模な無作為化試験。承認申請の主根拠。",
+   easy:"「<b>今の標準治療より良いか</b>」を、たくさんの患者で決着をつける本番の試験。生存期間（OS・PFS）で勝負する。",
+   use:"「第Ⅲ相でOSが延びた」＝<b>実臨床を変える強い証拠</b>。新薬承認のカギ。"},
+  {t:"第Ⅳ相試験（市販後）", en:"Phase IV", tags:["市販後","長期安全性"], fig:"phase",
+   def:"承認・発売後に、実臨床でのまれな副作用や長期安全性を監視する試験・調査。",
+   easy:"世に出た後で「<b>広く使ってみて問題ないか</b>」を見張る段階。数千〜数万人で初めて分かるまれな副作用を拾う。",
+   use:"発売後に判明した重大副作用（黒枠警告など）はここで見つかることが多い。"},
+  {t:"優越性試験", en:"Superiority trial", tags:["よりも優れる"],
+   def:"新治療が対照より優れていることを示すことを目的とした試験。",
+   easy:"「新しい方が<b>勝っている</b>」と証明しにいく試験。差が出なければ“勝てなかった”だけで、“同じ”とは言えない。",
+   use:"「有意差なし」を「同等」と読み違えないための区別ができる。"},
+  {t:"非劣性試験", en:"Non-inferiority trial", tags:["劣らない","マージンΔ"], fig:"noninf",
+   def:"新治療が対照より許容範囲（マージンΔ）を超えて劣らないことを示す試験。",
+   easy:"「<b>大きく負けてはいない</b>」ことを示す試験。効果はほぼ同じで、副作用が少ない・飲みやすい・安いなどの利点があるときに使う。",
+   use:"95%CIの“劣る側の端”がΔを超えなければ非劣性。効果同等＋利点ありの薬を見分けられる。"},
+  {t:"プラセボ対照／実薬対照", en:"Placebo / Active control", tags:["比較の相手"],
+   def:"比較対照が偽薬（プラセボ）か、既存の標準治療（実薬）かの区別。",
+   easy:"新薬を<b>何と比べたか</b>。ニセ薬と比べたのか、今ある本物の治療と比べたのかで、結果の重みが全然ちがう。",
+   use:"「プラセボに勝った」だけでは標準治療に勝ったとは限らない、と読める。"},
+  {t:"クロスオーバー試験", en:"Crossover trial", tags:["自己対照"],
+   def:"同一被験者が時期をずらして両方の治療を受け、自分自身を対照にする試験。",
+   easy:"同じ人が「前半はA、後半はB」と<b>両方を体験</b>して比べる方法。人による体質差の影響を消せる。",
+   use:"少人数でも精度を出せる。ただし前の薬の効果が残る（持ち越し）点に注意と分かる。"},
+  {t:"前向きコホート研究", en:"Prospective cohort", tags:["観察","追跡"],
+   def:"曝露のある/ない集団を追跡し、アウトカムの発生を比較する観察研究。",
+   easy:"くじ引きはせず、ある要因を<b>持つ人・持たない人</b>をこれから追いかけて、結果に差が出るか見る方法。",
+   use:"タバコなど“わざと曝露できない”テーマで使う。ただし交絡に弱いと分かる。"},
+  {t:"症例対照研究", en:"Case-control study", tags:["後ろ向き","OR"],
+   def:"疾患あり（症例）となし（対照）で、過去の曝露を比較する観察研究。",
+   easy:"「<b>病気になった人</b>」と「なっていない人」を集めて、過去に何をしていたかを<b>さかのぼって</b>比べる方法。",
+   use:"まれな病気を効率よく調べられる。使う指標はオッズ比だと分かる。"},
+  {t:"メタアナリシス／システマティックレビュー", en:"Meta-analysis / Systematic review", tags:["統合","最上位"], fig:"ci",
+   def:"決めた方法で文献を網羅的に集め評価し（SR）、結果を統計的に統合する（メタ解析）手法。",
+   easy:"バラバラの研究を<b>集めて合体</b>させ、全体として結局どうなのかを1つの答えにする。1本の研究より力強い。",
+   use:"エビデンスの最上位。ガイドラインの土台になっていると分かる。"},
+  {t:"リアルワールドデータ（RWD/RWE）", en:"Real-world data", tags:["実臨床","レセプト"],
+   def:"日常診療・レジストリ・レセプト等、実臨床から得られたデータおよびその根拠。",
+   easy:"きれいに整えた試験ではなく、<b>ふだんの診療の記録</b>そのものから効果や安全性を見る。高齢者や併存症の人も入る。",
+   use:"RCTに入らない“リアルな患者”に当てはまるか分かる。ただし交絡が多い。"},
+]},
+{cat:"③ アウトカム・エンドポイント", icon:"🎯", ord:3, note:"「予後が伸びた」を測るモノサシ", items:[
+  {t:"全生存期間（OS）", en:"Overall survival", tags:["真のエンドポイント","死亡"], fig:"survcurve",
+   def:"割付から、あらゆる原因による死亡までの期間。",
+   easy:"「治療を始めてから<b>亡くなるまでの時間</b>」。理由を問わず死亡で数えるので、ごまかしようがない一番正直な指標。",
+   use:"「この抗がん剤で<b>寿命が延びた</b>」を最も直接に表す。患者にとって最重要。"},
+  {t:"全生存率／○年生存率", en:"n-year survival rate", tags:["ある時点の割合"], fig:"survcurve",
+   def:"一定時点（例：5年）で生存している人の割合。",
+   easy:"「<b>5年後に何%の人が生きているか</b>」。がんの予後を語るときの定番の数字。",
+   use:"「5年生存率60%」のように、治療のおおよその見通しを患者に伝えられる。"},
+  {t:"生存期間中央値", en:"Median survival", tags:["代表値"], fig:"survcurve",
+   def:"生存曲線が50%に達する時点。半数が生存している期間。",
+   easy:"参加者を早く亡くなった順に並べて<b>ちょうど真ん中の人</b>の生存期間。平均でなく中央値を使うのは、まだ生きている人がいて平均が出せないため。",
+   use:"「中央値OSが12→18か月」のように、治療でどれだけ延びたかを一目で言える。"},
+  {t:"無増悪生存期間（PFS）", en:"Progression-free survival", tags:["増悪or死亡","代替"], fig:"survcurve",
+   def:"割付から、病勢進行（増悪）または死亡までの期間。",
+   easy:"「<b>悪化せずに保てた時間</b>」。がんが大きくなる or 亡くなる、どちらか早い方までを数える。死亡を待たず早く結果が出る。",
+   use:"早く分かる反面、<b>PFSが延びてもOS（寿命）が延びるとは限らない</b>と読める。"},
+  {t:"無病生存（DFS）／無再発生存（RFS）", en:"Disease-free / Relapse-free survival", tags:["術後補助"],
+   def:"根治治療後、再発や死亡まで（DFS）、または再発まで（RFS）の期間。",
+   easy:"手術などで<b>いったん治した後</b>、「再発せずにいられた時間」。術後に上乗せする抗がん剤の評価に使う。",
+   use:"術後補助療法（アジュバント）の論文で主役になる指標だと分かる。"},
+  {t:"無イベント生存（EFS）", en:"Event-free survival", tags:["複合"],
+   def:"治療失敗・再発・死亡など、あらかじめ定めたイベントまでの期間。",
+   easy:"「決めておいた<b>悪いこと</b>が起きるまでの時間」。何を悪いことに数えるかは試験ごとに違う。",
+   use:"“イベントの定義”を確認しないと意味を取り違える、と分かる。"},
+  {t:"奏効率（ORR）", en:"Objective response rate", tags:["CR＋PR"],
+   def:"腫瘍が基準以上に縮小した患者の割合（CR＋PR）。RECIST等で判定。",
+   easy:"「<b>腫瘍が目に見えて小さくなった人</b>の割合」。効果が早く分かる派手な指標。",
+   use:"縮んだ＝長生きとは限らないので、単独では過大評価に注意と分かる。"},
+  {t:"効果判定 CR / PR / SD / PD", en:"Complete/Partial Response, Stable/Progressive Disease", tags:["RECIST"],
+   def:"完全奏効(CR)・部分奏効(PR)・安定(SD)・進行(PD)。腫瘍の反応の4区分。",
+   easy:"腫瘍の反応の通知表。<b>CR=消えた／PR=かなり縮んだ／SD=そのまま／PD=大きくなった・新しい病変</b>。",
+   use:"ORRやPFSの判定の“もと”になる区分だと分かる。"},
+  {t:"病勢コントロール率（DCR）", en:"Disease control rate", tags:["CR+PR+SD"],
+   def:"CR＋PR＋SDの割合。増悪していない患者の割合。",
+   easy:"「縮んだ人＋<b>大きくならずに保てた人</b>」の割合。奏効率より広く“抑え込めた”を数える。",
+   use:"SD（安定）を効果に含めてよいかは薬・状況次第、と読める。"},
+  {t:"奏効期間（DOR）", en:"Duration of response", tags:["効果の持続"],
+   def:"奏効（CR/PR）が得られてから、増悪するまでの期間。",
+   easy:"「効き目が<b>どれくらい続いたか</b>」。縮んでもすぐ戻るのか、長く保つのかが分かる。",
+   use:"「よく効いて、長く続く薬か」を見分けられる。"},
+  {t:"代替（サロゲート）エンドポイント", en:"Surrogate endpoint", tags:["早いが間接的"], fig:"surrogate",
+   def:"真のアウトカム（生存等）を代理する指標（PFS・腫瘍縮小・検査値など）。",
+   easy:"本当に知りたいのは寿命だけど、それは時間がかかる。だから「<b>寿命の代わり</b>」に早く測れる腫瘍縮小やPFSで判断する。",
+   use:"代替が良くても<b>寿命が延びる保証はない</b>。承認後にOSで覆る例があると分かる。"},
+  {t:"真の／複合エンドポイント", en:"True / Composite endpoint", tags:["硬い","まとめる"],
+   def:"真＝患者に直接重要（死亡・脳卒中等）。複合＝複数のイベントを1つにまとめた指標。",
+   easy:"真＝「本当に大事な結末（死ぬ・倒れる）」。複合＝「死亡＋入院＋…」と<b>いくつもまとめて1つ</b>に数えたもの。数が増え差が出やすくなる。",
+   use:"複合は<b>軽いイベントが数を稼ぐ</b>ことがあるので内訳を見る、と分かる。"},
+  {t:"プライマリ／セカンダリエンドポイント", en:"Primary / Secondary endpoint", tags:["主要評価項目"],
+   def:"主要評価項目（試験の成否を決める）と、副次的な項目。",
+   easy:"試験が「<b>これで勝負する</b>」と最初に決めた本命の指標（プライマリ）と、おまけの指標（セカンダリ）。人数設計は本命に合わせる。",
+   use:"セカンダリの有意差は“おまけ”で、それだけでは確証にならないと分かる。"},
+  {t:"QOL・患者報告アウトカム（PRO）", en:"Quality of life / PRO", tags:["患者視点"],
+   def:"生活の質や症状を、患者自身が評価したアウトカム。",
+   easy:"数値や検査でなく「<b>本人がどれだけ楽に過ごせたか</b>」。長さだけでなく“質”を測る。",
+   use:"延命と引き換えのつらさまで含めて、治療の価値を判断できる。"},
+]},
+{cat:"④ 効果の大きさ", icon:"📈", ord:4, note:"予後をどれだけ動かすか", items:[
+  {t:"ハザード比（HR）", en:"Hazard ratio", tags:["生存解析","最重要"], fig:"survcurve",
+   def:"ある瞬間にイベント（死亡・増悪）が起こる速さの、群間の比。",
+   easy:"「悪いことが起こる<b>勢い</b>が、治療群では対照群の何倍か」。HR0.7なら勢いが<b>3割低い</b>＝良い。",
+   use:"生存系論文の主役。<b>95%CIが1をまたがなければ有意</b>と即判断できる。"},
+  {t:"相対危険度（RR）", en:"Relative risk", tags:["何倍"],
+   def:"治療群の発生率 ÷ 対照群の発生率。リスクが何倍かを表す。",
+   easy:"「悪いことが起こる<b>確率が何倍</b>か」。RR0.5なら半分に、2なら2倍に。",
+   use:"1より小さければリスク減。前向き試験・RCTで使えると分かる。",
+   formula:"RR = 治療群の発生率 ÷ 対照群の発生率"},
+  {t:"オッズ比（OR）", en:"Odds ratio", tags:["症例対照","ロジスティック"],
+   def:"あるアウトカムのオッズ（起こる/起こらない）の群間比。",
+   easy:"「起こりやすさ」を“起こる:起こらない”の比で表し、その比を群間で割ったもの。まれな事象ではRRとほぼ同じになる。",
+   use:"発生率が出せない症例対照研究や多変量解析で使う指標と分かる。",
+   formula:"OR = (a×d) ÷ (b×c)"},
+  {t:"絶対リスク減少（ARR）", en:"Absolute risk reduction", tags:["実際の差","臨床的意義"],
+   def:"対照群と治療群の発生率の差。実際に何%減ったか。",
+   easy:"「<b>実際に何%減ったか</b>」という素直な引き算。元が10%→8%なら、減ったのは2%。",
+   use:"“相対で50%減”でも絶対では数%のことがある。本当の意義はここで判断と分かる。",
+   formula:"ARR = 対照群の発生率 − 治療群の発生率"},
+  {t:"相対リスク減少（RRR）", en:"Relative risk reduction", tags:["誇張に注意"],
+   def:"リスクが相対的に何%減ったか。= 1 − RR。",
+   easy:"「<b>元と比べて</b>何割減ったか」。10%→8%は“2%減”だが相対では“20%減”と大きく聞こえる。",
+   use:"広告や要約で強調されがち。必ずARR/NNTと一緒に読む、と分かる。",
+   formula:"RRR = 1 − RR"},
+  {t:"治療必要数（NNT）", en:"Number needed to treat", tags:["実感しやすい"],
+   def:"1件の悪い転帰を防ぐために、何人を治療すればよいかを表す。ARRの逆数。",
+   easy:"「<b>1人を救うのに何人治療</b>すればいいか」。NNT=20なら、20人に使って1人が恩恵。小さいほど効率的。",
+   use:"患者に「◯人に1人が得します」と直感的に説明できる。",
+   formula:"NNT = 1 ÷ ARR"},
+  {t:"有害必要数（NNH）", en:"Number needed to harm", tags:["安全性"],
+   def:"1人に有害事象を生じさせる治療人数。",
+   easy:"「<b>1人に副作用を起こすのに何人</b>使うか」。大きいほど安全。NNTと並べて損得を見る。",
+   use:"益（NNT）と害（NNH）を並べて、治療の割に合うかを判断できる。",
+   formula:"NNH = 1 ÷ 絶対リスク増加"},
+]},
+{cat:"⑤ 生存解析", icon:"⏳", ord:5, note:"時間とイベントを扱う", items:[
+  {t:"カプランマイヤー曲線", en:"Kaplan-Meier curve", tags:["生存曲線"], fig:"km",
+   def:"時間経過に伴う生存率（イベント未発生率）を階段状に描いた曲線。",
+   easy:"横軸が時間、縦軸が生きている割合の<b>階段状のグラフ</b>。人が亡くなるたびに一段下がる。2本の線が離れるほど差が大きい。",
+   use:"治療群と対照群の差、中央値、○年生存率を1枚の図から読み取れる。"},
+  {t:"打ち切り（センサリング）", en:"Censoring", tags:["追跡終了"],
+   def:"観察終了や追跡不能で、イベントを確認できないまま観察が終わること。",
+   easy:"研究が終わった時点でまだ元気な人や、途中で連絡が取れなくなった人。<b>“死んでいない”のではなく“その先が不明”</b>な扱い。曲線上のヒゲ印。",
+   use:"打ち切りが多い/偏ると結果が歪む。その原因に注意する目を持てる。"},
+  {t:"ログランク検定", en:"Log-rank test", tags:["曲線の比較"],
+   def:"2群以上の生存曲線に差があるかを調べる検定。",
+   easy:"2本の生存曲線が「<b>偶然のズレか、本物の差か</b>」を判定する統計。p値を出す。",
+   use:"KM曲線とセットで登場。差の“大きさ”はHRで見ると分かる。"},
+  {t:"Cox比例ハザードモデル", en:"Cox proportional hazards", tags:["多変量","補正HR"],
+   def:"複数の因子を同時に調整しつつ、ハザード比を推定する回帰モデル。",
+   easy:"年齢や病期など<b>他の条件をそろえた上で</b>、治療だけの効果（HR）を取り出す計算。観察研究の交絡を薄める。",
+   use:"論文の“補正後HR（adjusted HR）”はこれで出していると分かる。"},
+  {t:"ハザード（瞬間リスク）", en:"Hazard", tags:["瞬間の発生率"],
+   def:"その時点まで生存した人が、次の瞬間にイベントを起こす率。",
+   easy:"「<b>今この瞬間に悪いことが起こる勢い</b>」。累積の生存率とは別物で、この勢いの群間比がハザード比。",
+   use:"HRが“何の比”なのかを正しく理解できる。"},
+]},
+{cat:"⑥ 統計的推論", icon:"🎲", ord:6, note:"その結果は偶然か・確かか", items:[
+  {t:"p値", en:"p-value", tags:["有意差","誤解注意"],
+   def:"帰無仮説（差がない）が正しいと仮定したとき、観測以上に極端な結果が出る確率。",
+   easy:"「もし本当は差がないとしたら、これほどの差が偶然出る<b>珍しさ</b>」。小さいほど“偶然じゃなさそう”。p<0.05が慣習。",
+   use:"p値は<b>効果の大きさや正しさではない</b>。有意でも小さな差のことがある、と分かる。",
+   formula:"p < 0.05 → 統計的に有意（あくまで慣習）"},
+  {t:"95%信頼区間（CI）", en:"Confidence interval", tags:["精度","最重要"], fig:"ci",
+   def:"真の値が含まれると考えられる範囲。効果の大きさと精度を同時に示す。",
+   easy:"「本当の効果は<b>だいたいこの範囲</b>」という幅。狭いほど精度が高い。幅の端がどこにあるかが勝負。",
+   use:"HR/RR/ORのCIが<b>1をまたぐ</b>、差のCIが<b>0をまたぐ</b>と非有意。p値より情報が多いと分かる。"},
+  {t:"検出力・サンプルサイズ", en:"Power / Sample size", tags:["1−β","80%"],
+   def:"本当に差があるとき、それを有意と検出できる確率（通常80%以上で設計）。",
+   easy:"「差があるなら、ちゃんと<b>見つけ出せる力</b>」。人数が少ないと力不足で、差があっても“なし”と出てしまう。",
+   use:"小規模試験の「有意差なし」は“効かない”証明ではない、と分かる。"},
+  {t:"有意水準（α）", en:"Significance level", tags:["閾値0.05"],
+   def:"帰無仮説を棄却する基準。通常0.05。第1種の過誤を許容する確率。",
+   easy:"「ここより珍しければ<b>本物の差とみなす</b>」という線引き。0.05なら、偶然でも20回に1回は“有意”と出てしまう。",
+   use:"なぜ0.05を境にするのか、その意味と限界が分かる。"},
+  {t:"第1種の過誤（αエラー）", en:"Type I error", tags:["偽陽性","あわて者"],
+   def:"本当は差がないのに「差がある」と誤って結論する誤り。",
+   easy:"<b>本当は効かないのに「効く」と早とちり</b>する間違い。検定を何度も繰り返すと起こりやすい。",
+   use:"多くの項目を調べた研究の“有意差”を鵜呑みにしない目を持てる。"},
+  {t:"第2種の過誤（βエラー）", en:"Type II error", tags:["偽陰性","見逃し"],
+   def:"本当は差があるのに「差がない」と見逃す誤り。",
+   easy:"<b>本当は効くのに「効かない」と見逃す</b>間違い。人数不足（検出力不足）で起きやすい。",
+   use:"“陰性の結果”が本当に無効なのか力不足なのかを疑える。"},
+  {t:"効果量", en:"Effect size", tags:["大きさ"],
+   def:"差の大きさそのものを表す指標。",
+   easy:"p値は「差があるか無いか」だけ。効果量は「<b>その差がどれくらい大きいか</b>」。",
+   use:"人数が巨大だと臨床的に無意味な差でも有意になる。効果量で実感を測れる。"},
+  {t:"中間解析", en:"Interim analysis", tags:["早期中止"],
+   def:"試験の途中で行う解析。著効・無効・有害により早期中止を判断する。",
+   easy:"最後まで待たず<b>途中で成績を覗く</b>こと。あまりに良い/悪いと、そこで試験を打ち切る。",
+   use:"“良すぎて早期中止”の試験は効果を<b>過大評価しやすい</b>と分かる。"},
+  {t:"多重比較", en:"Multiple comparisons", tags:["補正"],
+   def:"多数の検定を重ねると、偶然の有意差が増える問題。",
+   easy:"くじを<b>何回も引けば当たりが出る</b>のと同じで、たくさん検定すると偶然の“有意”が紛れ込む。",
+   use:"サブグループや多数の項目を漁った有意差は割り引いて読む、と分かる。"},
+]},
+{cat:"⑦ バイアスと解析の質", icon:"🛡️", ord:7, note:"結果の信頼性を左右する", items:[
+  {t:"ランダム化", en:"Randomization", tags:["交絡対策","RCTの核"],
+   def:"対象を無作為に群分けすること。",
+   easy:"<b>くじ引きでグループ分け</b>すること。これで年齢・重症度など見える差も見えない差も両群でほぼ揃う。",
+   use:"RCT最大の強みが何なのか、なぜ因果を言えるのかが分かる。"},
+  {t:"割付の隠蔽", en:"Allocation concealment", tags:["登録時の公平"],
+   def:"次にどちらの群へ入るかを、登録する人に分からせない仕組み。",
+   easy:"「次はどっちの群か」を<b>登録係に事前に知られない</b>ようにすること。知られると重症者を片方に寄せる等の操作が起きる。",
+   use:"盲検化とは別の“入口の公平さ”。ここが甘いと選択バイアスと分かる。"},
+  {t:"盲検化", en:"Blinding", tags:["単盲検/二重盲検"],
+   def:"被験者・治療者・評価者が割付を知らないようにすること。",
+   easy:"「<b>どっちの薬か本人も医者も知らない</b>」状態にすること。思い込み（プラセボ効果や採点の甘辛）を防ぐ。",
+   use:"主観的な評価項目ほど盲検化が効く。二重盲検が理想と分かる。"},
+  {t:"ITT解析", en:"Intention-to-treat", tags:["割付通り","保守的"],
+   def:"実際の遵守に関わらず、割り付けられた群のまま解析する方法。",
+   easy:"途中でやめた人も<b>最初に決めたグループのまま</b>集計する。現実に近く、都合の良い水増しを防ぐ。",
+   use:"ランダム化の利点を保つ標準的な解析。効果を甘く見せない、と分かる。"},
+  {t:"per-protocol解析", en:"Per-protocol analysis", tags:["遵守者のみ"],
+   def:"プロトコルを順守した人だけで解析する方法。",
+   easy:"「<b>ちゃんと最後まで守った人だけ</b>」で集計する。理論上の最大効果は見えるが、脱落者を外す分だけ甘くなりやすい。",
+   use:"ITTと結果を見比べて、効果が頑健かを確かめられる。"},
+  {t:"交絡", en:"Confounding", tags:["第3因子"],
+   def:"曝露とアウトカムの両方に関連する第3の因子が、見かけの関連を作る現象。",
+   easy:"「コーヒーで肺がん」に見えても、実は<b>喫煙者ほどコーヒーも飲む</b>だけ、というような“隠れた真犯人”。",
+   use:"観察研究の最大の落とし穴。多変量解析やランダム化で対処と分かる。"},
+  {t:"選択バイアス", en:"Selection bias", tags:["対象の偏り"],
+   def:"対象者の選ばれ方・残り方が偏って生じる系統的な誤り。",
+   easy:"<b>集めた人が偏っている</b>ために結果が歪むこと。元気な人だけ残る、などで実態とずれる。",
+   use:"追跡率（例：90%以上か）を確認する視点を持てる。"},
+  {t:"情報バイアス", en:"Information bias", tags:["測定の偏り"],
+   def:"測定・分類の誤りによる偏り（想起・観察者バイアス等）。",
+   easy:"<b>データの取り方が偏る</b>こと。患者が過去を思い出し間違える、医者が贔屓目に採点する、など。",
+   use:"盲検化・標準化された評価で減らせると分かる。"},
+  {t:"内的妥当性", en:"Internal validity", tags:["因果の確からしさ"],
+   def:"その研究内で、結果が本当にその治療によると言えるか。",
+   easy:"「その研究の中で、<b>結果は本当にその治療のおかげ</b>と言い切れるか」。バイアスや交絡が少ないほど高い。",
+   use:"ここが崩れていたら、他に当てはめる以前の問題と分かる。"},
+  {t:"外的妥当性", en:"External validity", tags:["一般化","目の前の患者"],
+   def:"結果を他の集団・現場に当てはめられるか（一般化可能性）。",
+   easy:"「<b>その結果を、自分の患者に当てはめてよいか</b>」。厳しい条件で選んだ試験ほど、目の前の人には当てにくい。",
+   use:"除外基準や患者背景を見て「うちの患者と違う」と気づける。"},
+  {t:"サブグループ解析", en:"Subgroup analysis", tags:["仮説生成","過信禁物"],
+   def:"特定の部分集団に絞って効果を見る解析。",
+   easy:"「<b>高齢者だけ／男性だけ</b>ではどうか」と切り分けて見る解析。数を分ける分、偶然の“効いた”が出やすい。",
+   use:"事前に決めたものでなければ“仮説どまり”と割り引ける。"},
+  {t:"脱落／追跡不能", en:"Loss to follow-up", tags:["欠測"],
+   def:"追跡が途切れ、転帰が不明になること。",
+   easy:"<b>途中で来なくなった人</b>。多いほど、そして偏るほど結果が信用できなくなる。",
+   use:"脱落が多い試験は、最悪シナリオで検証（感度分析）すべきと分かる。"},
+]},
+{cat:"⑧ 化学療法の実務用語", icon:"💊", ord:8, note:"抗がん剤の現場でつく言葉", items:[
+  {t:"レジメン", en:"Regimen", tags:["組み合わせ","スケジュール"],
+   def:"抗がん薬の組み合わせ・用量・投与間隔を定めた治療の型（例：FOLFOX）。",
+   easy:"「<b>どの薬を・どれだけ・どの間隔で</b>」を1セットにした<b>治療の献立</b>。名前（FOLFOXなど）で呼ぶ。",
+   use:"論文の“レジメン名”を見れば、使う薬とスケジュールが一発で分かる。"},
+  {t:"一次治療／二次治療（ライン）", en:"1st / 2nd line", tags:["治療の順番"], fig:"line",
+   def:"最初に用いる標準治療（一次）と、効かなくなった後に用いる次の治療（二次以降）。",
+   easy:"「<b>最初に使う本命</b>」が一次治療、それが効かなくなったら「次の手」が二次治療。順番が下がるほど選択肢は限られる。",
+   use:"「二次治療での成績」など、どの段階の患者の話かを正しく読める。"},
+  {t:"アジュバント／ネオアジュバント", en:"Adjuvant / Neoadjuvant", tags:["術後/術前"],
+   def:"手術後に再発予防で上乗せする化学療法（アジュバント）／手術前に行う化学療法（ネオアジュバント）。",
+   easy:"手術の<b>後</b>に“再発の芽をつぶす”ダメ押しがアジュバント、手術の<b>前</b>に腫瘍を縮めて手術しやすくするのがネオアジュバント。",
+   use:"DFS/RFSが主役になる領域だと分かる（治癒を狙う場面）。"},
+  {t:"導入→地固め→維持療法", en:"Induction / Consolidation / Maintenance", tags:["治療の段階"],
+   def:"寛解導入（導入）→効果を固める（地固め）→効果を保つ（維持）の段階的治療。",
+   easy:"まず強めに叩いて病気を抑え込み（導入）、取りこぼしを潰し（地固め）、その後<b>ゆるく続けて再発を防ぐ</b>（維持）という3段階。",
+   use:"「維持療法でPFS延長」など、どの段階の効果かを区別できる。"},
+  {t:"ベストサポーティブケア（BSC）", en:"Best supportive care", tags:["症状緩和","対照"],
+   def:"抗がん治療を行わず、症状緩和・QOL維持に徹する支持療法。",
+   easy:"がんそのものを叩く治療はやめ、<b>つらさを取ることに専念</b>するケア。試験では“薬なし側”の比較対照にもなる。",
+   use:"「新薬 vs BSC」の試験は、無治療と比べた効果だと読める。"},
+  {t:"PS（パフォーマンスステータス）", en:"Performance status / ECOG", tags:["全身状態","0〜4"], fig:"ps",
+   def:"全身状態を0〜4で表す指標（ECOG）。0＝無症状〜4＝終日臥床。",
+   easy:"「<b>どれくらい動けるか</b>」の元気度スコア。0が普通に生活、数字が上がるほど寝ている時間が長い。抗がん剤に耐えられるかの目安。",
+   use:"PSが悪い（3〜4）と積極的治療が難しい、と判断の軸になる。"},
+  {t:"有害事象グレード（CTCAE）", en:"Adverse event grade", tags:["副作用の重さ","G1〜5"],
+   def:"有害事象の重症度をGrade1〜5で表す共通基準（CTCAE）。G5＝死亡。",
+   easy:"副作用の重さの<b>5段階の物差し</b>。G1軽い〜G3で重い（入院級）〜<b>G5は死亡</b>。世界共通なので比較できる。",
+   use:"「G3以上の副作用が◯%」で、治療の毒性の重さを客観的に読める。"},
+  {t:"用量制限毒性（DLT）／最大耐用量（MTD）", en:"DLT / MTD", tags:["第Ⅰ相","用量決定"],
+   def:"それ以上増量できない重い毒性（DLT）と、許容できる最大用量（MTD）。",
+   easy:"増やしていって「<b>これ以上は無理</b>」という副作用が出る点がDLT、その手前の<b>ギリギリ使える最大量</b>がMTD。第Ⅰ相で用量を決める基準。",
+   use:"新薬の“推奨用量”がどう決まったのかが分かる。"},
+  {t:"用量強度・減量／休薬", en:"Dose intensity / Reduction", tags:["実際に投与できた量"],
+   def:"単位時間あたりに実際投与できた薬の量（用量強度）と、副作用に応じた減量・休薬。",
+   easy:"予定通り打てず<b>減らしたり休んだり</b>すると、実際に体に入った量（用量強度）が下がる。効果にも響く。",
+   use:"「予定通り投与できたか」が効果を左右すると分かる。"},
+  {t:"RECIST", en:"Response Evaluation Criteria in Solid Tumors", tags:["効果判定の基準"],
+   def:"固形がんの治療効果を、病変径の変化で判定する国際基準（CR/PR/SD/PD）。",
+   easy:"腫瘍の効果を<b>大きさの変化で採点する世界共通ルール</b>。これがあるから、どの施設・どの論文でも同じ物差しで比べられる。",
+   use:"ORRやPFSが“何を根拠に”判定されたかが分かる。"},
+  {t:"オフラベル／適応外使用", en:"Off-label use", tags:["承認外"],
+   def:"承認された効能・用法・用量の範囲外での使用。",
+   easy:"薬が<b>認められている使い方の外</b>で使うこと。根拠論文はあっても保険や責任の扱いが変わる。",
+   use:"エビデンスと承認は別物、という視点を持てる。"},
+]},
+{cat:"① 診断の指標", icon:"🔬", ord:1, note:"検査がどれだけ当たるか（論文の感度・特異度）", items:[
+  {t:"感度", en:"Sensitivity", tags:["SnNout","見逃さない力"], fig:"confusion",
+   def:"疾患がある人のうち、検査が正しく陽性になる割合。= TP/(TP+FN)。",
+   easy:"「<b>病気の人を、ちゃんと拾えるか</b>」という力。感度が高いほど見逃しが少ない。",
+   use:"感度の高い検査が<b>陰性なら“ほぼ除外”</b>してよい（SnNout）。スクリーニング向き。",
+   formula:"感度 = TP ÷ (TP + FN)"},
+  {t:"特異度", en:"Specificity", tags:["SpPin","無駄に拾わない力"], fig:"confusion",
+   def:"疾患がない人のうち、検査が正しく陰性になる割合。= TN/(TN+FP)。",
+   easy:"「<b>健康な人を、ちゃんと陰性にできるか</b>」という力。特異度が高いほど無駄な陽性（空振り）が少ない。",
+   use:"特異度の高い検査が<b>陽性なら“ほぼ確定”</b>（SpPin）。確定診断向き。",
+   formula:"特異度 = TN ÷ (TN + FP)"},
+  {t:"偽陽性／偽陰性", en:"False positive / negative", tags:["取り違え"],
+   def:"疾患がないのに陽性（偽陽性）、あるのに陰性（偽陰性）となる誤り。",
+   easy:"偽陽性＝<b>健康なのに“陽性”</b>と出る空振り。偽陰性＝<b>病気なのに“陰性”</b>と出る見逃し。",
+   use:"重い病気ほど“見逃し（偽陰性）”を避けたい、と検査選びに使える。"},
+  {t:"陽性的中率（PPV）", en:"Positive predictive value", tags:["有病率に依存"], fig:"confusion",
+   def:"検査が陽性だった人のうち、実際に疾患がある割合。",
+   easy:"「<b>陽性と出た人が、本当に病気の確率</b>」。感度・特異度と違い、その病気の多い/少ない（有病率）で大きく変わる。",
+   use:"まれな病気では“陽性でも実は外れ”が多い、と分かる。",
+   formula:"PPV = TP ÷ (TP + FP)"},
+  {t:"陰性的中率（NPV）", en:"Negative predictive value", tags:["有病率に依存"], fig:"confusion",
+   def:"検査が陰性だった人のうち、実際に疾患がない割合。",
+   easy:"「<b>陰性と出た人が、本当に病気でない確率</b>」。これも有病率で変わり、まれな病気ほど高くなる。",
+   use:"有病率が低い集団では陰性の安心度が高い、と読める。",
+   formula:"NPV = TN ÷ (TN + FN)"},
+  {t:"尤度比（LR＋/LR−）", en:"Likelihood ratio", tags:["有病率非依存"], fig:"pretest",
+   def:"検査結果が疾患確率をどれだけ動かすかの指標。LR+＝感度/(1−特異度)、LR−＝(1−感度)/特異度。",
+   easy:"「その検査結果で、<b>病気らしさがどれだけ動くか</b>」。LR+が大きい陽性ほど病気に近づき、LR−が小さい陰性ほど遠ざかる。",
+   use:"<b>有病率に左右されない</b>のが強み。検査前確率×尤度比で検査後確率を出せる。",
+   formula:"LR+ = 感度 ÷ (1−特異度)　LR− = (1−感度) ÷ 特異度"},
+  {t:"検査前確率／検査後確率", en:"Pre / Post-test probability", tags:["ベイズ"], fig:"pretest",
+   def:"検査前に見積もる疾患確率と、検査結果を反映した後の確率。",
+   easy:"検査<b>前</b>の「たぶんこれくらい病気っぽい」という感触が、検査結果で<b>後</b>の確率に更新される、という考え方。",
+   use:"検査前確率が低すぎると、陽性でも当てにならないと分かる。"},
+  {t:"ROC曲線／AUC", en:"ROC curve / AUC", tags:["判別能"], fig:"roc",
+   def:"カットオフを動かした感度と偽陽性率の関係（ROC）と、その曲線下面積（AUC）。",
+   easy:"検査の切り分け基準を変えながら“当たり具合”を描いた曲線がROC、その<b>面積が総合成績（AUC）</b>。1に近いほど優秀、0.5はコイン投げ並み。",
+   use:"AUCの数字で複数の検査の“見分ける力”を比較できる。"},
+]},
+];
+DATA.sort((a,b)=>a.ord-b.ord);
+
+/* ===== 描画 ===== */
+const main=document.getElementById('main');
+const catsEl=document.getElementById('cats');
+const countEl=document.getElementById('count');
+const searchEl=document.getElementById('search');
+let activeCat="all";
+
+const allCats=[{cat:"all",label:"ダッシュボード"}].concat(DATA.map(d=>({cat:d.cat,label:d.cat})));
+catsEl.innerHTML=allCats.map(c=>
+  `<button class="cat-chip${c.cat==='all'?' active':''}" data-cat="${c.cat}">${c.label}</button>`
+).join('');
+catsEl.addEventListener('click',e=>{
+  const b=e.target.closest('.cat-chip');if(!b)return;
+  activeCat=b.dataset.cat;searchEl.value='';
+  syncChips();render();window.scrollTo({top:0,behavior:'smooth'});
+});
+function syncChips(){[...catsEl.children].forEach(x=>x.classList.toggle('active',x.dataset.cat===activeCat));}
+searchEl.addEventListener('input',()=>{if(searchEl.value){activeCat='all';syncChips();}render();});
+
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function mark(html,q){
+  if(!q)return html;
+  return html.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),
+    m=>`<span class="hl">${m}</span>`);
+}
+function totalCount(){return DATA.reduce((n,s)=>n+s.items.length,0);}
+
+function dashboard(){
+  let h=`<div class="dash">
+    <div class="dash-hero"><h2>臨床論文・化学療法 用語ダッシュボード</h2>
+    <p>全 ${totalCount()} 語。カテゴリーを選ぶか、上の検索へ。用語を押すと「一般的な説明」＋「かみくだいた説明」が開きます。</p></div>`;
+  DATA.forEach(s=>{
+    h+=`<div class="dash-card" data-cat="${s.cat}">
+      <div class="ic">${s.icon}</div>
+      <div class="nm">${s.cat}</div>
+      <div class="ct">${s.items.length}語 ・ ${s.note}</div></div>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function termHTML(it,q){
+  const tags=(it.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
+  const fig=it.fig?`<div class="figwrap">${FIG[it.fig]}</div>`:'';
+  return `<div class="term">
+    <button class="term-btn">
+      <span>${mark(it.t,q)}</span>
+      <span class="en">${it.en}</span>
+      <span class="chev"></span>
+    </button>
+    <div class="body"><div class="body-in">
+      <div class="lbl lbl-hard">一般的な説明</div>
+      <p class="def">${mark(it.def,q)}</p>
+      ${fig}
+      <div class="easy"><div class="lbl lbl-easy">かみくだくと</div>${mark(it.easy,q)}</div>
+      ${it.use?`<div class="use"><div class="lbl lbl-use">これが分かる・使える</div>${mark(it.use,q)}</div>`:''}
+      ${it.formula?`<div class="formula">${it.formula}</div>`:''}
+      <div>${tags}</div>
+    </div></div>
+  </div>`;
+}
+
+function render(){
+  const q=searchEl.value.trim();
+  const ql=q.toLowerCase();
+
+  // ダッシュボード（検索なし & すべて）
+  if(!ql && activeCat==='all'){
+    main.innerHTML=dashboard();
+    countEl.textContent='';
+    main.querySelectorAll('.dash-card').forEach(c=>c.addEventListener('click',()=>{
+      activeCat=c.dataset.cat;syncChips();render();window.scrollTo({top:0,behavior:'smooth'});
+    }));
+    return;
+  }
+
+  let total=0,html='';
+  DATA.forEach(sec=>{
+    if(activeCat!=='all'&&activeCat!==sec.cat)return;
+    const items=sec.items.filter(it=>{
+      if(!ql)return true;
+      return (it.t+it.en+(it.tags||[]).join('')+it.def+it.easy+(it.use||'')).toLowerCase().includes(ql);
+    });
+    if(!items.length)return;
+    total+=items.length;
+    html+=`<div class="section-title">${sec.icon} ${sec.cat}<span class="n">${sec.note}</span></div><div class="grid">`;
+    items.forEach(it=>html+=termHTML(it,q));
+    html+=`</div>`;
+  });
+  main.innerHTML=html||`<div class="empty">「${esc(q)}」に一致する用語はありません</div>`;
+  countEl.textContent=total?`${total} 語`:'';
+  main.querySelectorAll('.term-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>btn.parentElement.classList.toggle('open'));
+  });
+  if(ql)main.querySelectorAll('.term').forEach(t=>t.classList.add('open'));
+}
+render();
+</script>
+</body>
+</html>
