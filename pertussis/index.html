@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成人・長引く咳の百日咳ワークアップ</title>
+<style>
+  :root{
+    --bg:#eef2f7; --card:#ffffff; --ink:#1a2230; --muted:#556274; --line:#d8dfe8;
+    --succ-bg:#e3f3e8; --succ:#1f7a45; --succ-d:#155a32;
+    --acc-bg:#e4eefb; --acc:#1560b0; --acc-d:#0d406f;
+    --warn-bg:#fdf0d8; --warn:#9a6b12;
+    --dang-bg:#fbe4e4; --dang:#b23434;
+    --surf1:#eceff3;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    font-size:20px; line-height:1.8;
+  }
+  .wrap{max-width:1200px; margin:0 auto; padding:32px 28px 80px;}
+  header.hero{padding:8px 0 4px;}
+  .kicker{color:var(--acc); font-size:20px; font-weight:600; letter-spacing:.04em; margin:0 0 6px;}
+  h1{font-size:42px; line-height:1.3; font-weight:700; margin:0 0 10px;}
+  .lead{font-size:23px; color:var(--muted); margin:0 0 22px;}
+  .figcard{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 20px; box-shadow:0 2px 10px rgba(20,40,70,.05);}
+  .figcard svg{width:100%; height:auto; display:block;}
+  .fignote{font-size:18px; color:var(--muted); margin:14px 4px 0; text-align:center;}
+
+  .steps{margin-top:44px; display:flex; flex-direction:column; gap:16px;}
+  .item{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .item.open{border-color:var(--acc);}
+  button.q{
+    width:100%; text-align:left; cursor:pointer; border:0; background:transparent;
+    padding:24px 26px; font-size:25px; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; gap:16px;
+  }
+  button.q:hover{background:#f4f8fd;}
+  .num{flex:0 0 auto; width:44px; height:44px; border-radius:12px; background:var(--acc-bg); color:var(--acc-d);
+       display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;}
+  .chev{margin-left:auto; flex:0 0 auto; color:var(--muted); font-size:26px; transition:transform .25s;}
+  .item.open .chev{transform:rotate(90deg);}
+  .panel{display:none; padding:4px 30px 30px 30px; font-size:21px;}
+  .item.open .panel{display:block; animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:none}}
+  .panel p{margin:12px 0;}
+  .panel ul{margin:10px 0 10px; padding-left:1.3em;}
+  .panel li{margin:9px 0;}
+  .tag{display:inline-block; padding:2px 12px; border-radius:999px; font-size:17px; font-weight:700; vertical-align:middle;}
+  .t-succ{background:var(--succ-bg); color:var(--succ-d);}
+  .t-acc{background:var(--acc-bg); color:var(--acc-d);}
+  .t-dang{background:var(--dang-bg); color:var(--dang);}
+  .t-warn{background:var(--warn-bg); color:var(--warn);}
+  .callout{background:var(--surf1); border-left:6px solid var(--acc); border-radius:10px; padding:16px 20px; margin:16px 0; font-size:20px;}
+  .callout.warn{border-left-color:var(--dang); background:#fdeeee;}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:19px;}
+  th,td{border:1px solid var(--line); padding:12px 14px; text-align:left; vertical-align:top;}
+  th{background:var(--surf1); font-weight:700;}
+  td b{color:var(--acc-d);}
+  .footer{margin-top:40px; font-size:17px; color:var(--muted); line-height:1.7; border-top:1px solid var(--line); padding-top:20px;}
+  .expandall{margin:26px 0 0; text-align:right;}
+  .expandall button{background:transparent; border:1px solid var(--line); border-radius:999px; padding:10px 20px; font-size:17px; color:var(--muted); cursor:pointer;}
+  .expandall button:hover{border-color:var(--acc); color:var(--acc);}
+
+  /* 治療ブロック（Step1の前） */
+  .treatblock{margin-top:40px;}
+  .treatbtn{width:100%; cursor:pointer; border:0; border-radius:16px; background:#2f915a; color:#fff;
+    padding:26px 28px; font-size:27px; font-weight:700; display:flex; align-items:center; gap:14px;
+    box-shadow:0 3px 14px rgba(31,122,69,.28);}
+  .treatbtn:hover{background:#277a4c;}
+  .treatbtn .pilltag{font-size:16px; font-weight:700; background:rgba(255,255,255,.22); padding:3px 12px; border-radius:999px;}
+  .treatbtn .chev{margin-left:auto; font-size:30px; transition:transform .25s; color:#eafff2;}
+  .treatblock.open .treatbtn .chev{transform:rotate(90deg);}
+  .treatpanel{display:none; background:var(--card); border:1px solid #bfe3cd; border-radius:16px; margin-top:12px; padding:26px 30px 30px; font-size:21px;}
+  .treatblock.open .treatpanel{display:block; animation:fade .3s ease;}
+  .seg{display:flex; gap:12px; margin:20px 0 6px; flex-wrap:wrap;}
+  .segbtn{cursor:pointer; border:2px solid #2f915a; background:#fff; color:#1f7a45; border-radius:999px;
+    padding:13px 26px; font-size:21px; font-weight:700;}
+  .segbtn.active{background:#2f915a; color:#fff;}
+  .segbtn.resist{border-color:#b23434; color:#b23434;}
+  .segbtn.resist.active{background:#b23434; color:#fff;}
+  .segpanel{margin-top:16px;}
+  .segpanel.hidden{display:none;}
+  .rxtable td b{color:#155a32;}
+  .rxtable .drug{font-weight:700; font-size:21px; white-space:nowrap;}
+  .rxtable .days{white-space:nowrap; text-align:center; font-weight:700;}
+  .note-src{font-size:16px; color:var(--muted); margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="kicker">成人外来 / 遷延性咳嗽の意思決定ツール</p>
+    <h1>長引く咳、百日咳を「治療できる時期」に「診断」できていますか？</h1>
+    <p class="lead">マクロライドが効く<b>治療の窓（発症0〜2週）</b>と、成人が受診し確定できる<b>診断の窓（2〜8週）</b>はズレます。この一枚がその核心です。</p>
+
+    <div class="figcard">
+      <svg viewBox="0 0 1000 640" role="img" xmlns="http://www.w3.org/2000/svg">
+        <title>成人百日咳の治療窓と検査窓の時間的ズレ</title>
+        <desc>発症からの週数を横軸に、病期・マクロライドの治療効果・各検査の推奨期間を並べた図。</desc>
+
+        <!-- gridlines (faint) -->
+        <g stroke="#e6ebf1" stroke-width="1">
+          <line x1="230" y1="90" x2="230" y2="516"/><line x1="318" y1="90" x2="318" y2="516"/>
+          <line x1="406" y1="90" x2="406" y2="516"/><line x1="494" y1="90" x2="494" y2="516"/>
+          <line x1="582" y1="90" x2="582" y2="516"/><line x1="670" y1="90" x2="670" y2="516"/>
+          <line x1="758" y1="90" x2="758" y2="516"/><line x1="846" y1="90" x2="846" y2="516"/>
+          <line x1="934" y1="90" x2="934" y2="516"/>
+        </g>
+
+        <!-- presentation zone week2-4 : dashed boundaries only -->
+        <line x1="406" y1="90" x2="406" y2="516" stroke="#b9902f" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <line x1="582" y1="90" x2="582" y2="516" stroke="#b9902f" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <text x="494" y="78" text-anchor="middle" font-size="18" fill="#8a5e10" font-weight="700">▼ 成人が受診しやすい（痙咳期）</text>
+
+        <!-- 病期 band -->
+        <text x="30" y="122" font-size="21" fill="#556274" font-weight="700">病期</text>
+        <rect x="230" y="94" width="176" height="42" rx="7" fill="#f5cf7a"/>
+        <text x="318" y="121" text-anchor="middle" font-size="20" fill="#6b4a08" font-weight="700">カタル期</text>
+        <rect x="406" y="94" width="352" height="42" rx="7" fill="#eaa1a1"/>
+        <text x="582" y="121" text-anchor="middle" font-size="20" fill="#6e1a1a" font-weight="700">痙咳期（発作性の咳）</text>
+        <rect x="758" y="94" width="176" height="42" rx="7" fill="#d5dce4"/>
+        <text x="846" y="121" text-anchor="middle" font-size="20" fill="#455063" font-weight="700">回復期</text>
+
+        <!-- 治療:症状 (green solid) -->
+        <text x="30" y="190" font-size="21" fill="#1f7a45" font-weight="700">治療:症状↓</text>
+        <rect x="230" y="164" width="176" height="42" rx="7" fill="#2f915a"/>
+        <rect x="406" y="164" width="88" height="42" rx="7" fill="#bfe3cd" stroke="#2f915a" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="318" y="191" text-anchor="middle" font-size="19" fill="#ffffff" font-weight="700">咳を短縮</text>
+        <text x="506" y="191" font-size="18" fill="#2c3646">カタル期のみ（発症〜2週だけ）</text>
+
+        <!-- 治療:排菌 (green solid) -->
+        <text x="30" y="248" font-size="21" fill="#1f7a45" font-weight="700">治療:排菌↓</text>
+        <rect x="230" y="222" width="264" height="42" rx="7" fill="#2f915a"/>
+        <text x="362" y="249" text-anchor="middle" font-size="19" fill="#ffffff" font-weight="700">排菌停止＝伝播予防（〜3週）</text>
+        <rect x="494" y="222" width="264" height="42" rx="7" fill="#e5f2ea" stroke="#2f915a" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="626" y="249" text-anchor="middle" font-size="18" fill="#1f7a45" font-weight="700">医療従事者は6週まで</text>
+
+        <line x1="24" y1="284" x2="960" y2="284" stroke="#dbe1e9" stroke-width="1"/>
+
+        <!-- 培養 (blue solid) -->
+        <text x="30" y="316" font-size="21" fill="#1560b0" font-weight="700">培養</text>
+        <rect x="230" y="290" width="176" height="42" rx="7" fill="#2f74bd"/>
+        <text x="506" y="317" font-size="18" fill="#2c3646">2週以内／感度〜60%・特異度は高い</text>
+
+        <!-- 核酸 (blue solid) -->
+        <text x="30" y="374" font-size="21" fill="#1560b0" font-weight="700">核酸 LAMP</text>
+        <rect x="230" y="348" width="264" height="42" rx="7" fill="#2f74bd"/>
+        <rect x="494" y="348" width="88" height="42" rx="7" fill="#c3d9f2" stroke="#2f74bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="590" y="375" font-size="18" fill="#2c3646">最も高感度／3週以内が最適</text>
+
+        <!-- 抗原 (blue solid) -->
+        <text x="30" y="432" font-size="21" fill="#1560b0" font-weight="700">抗原迅速</text>
+        <rect x="230" y="406" width="176" height="42" rx="7" fill="#2f74bd"/>
+        <text x="506" y="433" font-size="18" fill="#2c3646">15分・感度86%/特異度97%（対PCR）</text>
+
+        <!-- 抗体 (blue solid) -->
+        <text x="30" y="490" font-size="21" fill="#1560b0" font-weight="700">抗体 PT-IgG</text>
+        <rect x="406" y="464" width="88" height="42" rx="7" fill="#c3d9f2" stroke="#2f74bd" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <rect x="494" y="464" width="440" height="42" rx="7" fill="#2f74bd"/>
+        <text x="714" y="491" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">発症2週〜上昇／単一血清 ≥100 EU/mL で確定</text>
+
+        <!-- axis -->
+        <line x1="230" y1="524" x2="934" y2="524" stroke="#556274" stroke-width="1.5"/>
+        <g font-size="19" fill="#455063" text-anchor="middle" font-weight="700">
+          <text x="230" y="550">0</text><text x="318" y="550">1</text><text x="406" y="550">2</text>
+          <text x="494" y="550">3</text><text x="582" y="550">4</text><text x="670" y="550">5</text>
+          <text x="758" y="550">6</text><text x="846" y="550">7</text><text x="934" y="550">8</text>
+        </g>
+        <text x="30" y="550" font-size="18" fill="#8a94a3">発症→</text>
+        <text x="934" y="574" text-anchor="end" font-size="18" fill="#8a94a3">週数（週）</text>
+
+        <!-- brackets -->
+        <rect x="230" y="584" width="176" height="48" rx="9" fill="#eaf6ef" stroke="#2f915a" stroke-width="1.5"/>
+        <text x="318" y="606" text-anchor="middle" font-size="18" fill="#155a32" font-weight="700">治療で得する窓</text>
+        <text x="318" y="626" text-anchor="middle" font-size="18" fill="#155a32" font-weight="700">0〜2週</text>
+
+        <path d="M414 608 H486" stroke="#b23434" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <path d="M486 608 H414" stroke="#b23434" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <text x="450" y="596" text-anchor="middle" font-size="15" fill="#b23434" font-weight="700">ズレ</text>
+
+        <rect x="494" y="584" width="440" height="48" rx="9" fill="#e8f0fb" stroke="#2f74bd" stroke-width="1.5"/>
+        <text x="714" y="606" text-anchor="middle" font-size="18" fill="#0d406f" font-weight="700">受診・確定しやすい窓（核酸→抗体）</text>
+        <text x="714" y="626" text-anchor="middle" font-size="18" fill="#0d406f" font-weight="700">2〜8週 ＝ でも症状治療の得は薄い</text>
+
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#b23434" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      </svg>
+      <p class="fignote"><b style="color:#2f915a">■緑</b>＝治療（マクロライド）が効く時期　<b style="color:#2f74bd">■青</b>＝各検査が使える時期　<span style="color:#8a5e10">┊破線の縦2本</span>＝成人が受診しやすい帯。薄い塗り＋破線枠＝「使えるが感度が落ちる／立ち上がり」の移行帯。</p>
+    </div>
+
+    <div class="expandall"><button id="toggleAll">▽ すべて開く</button></div>
+  </header>
+
+  <section class="treatblock" id="treatBlock">
+    <button class="treatbtn" id="treatToggle">💊 治療（抗生剤の選択） <span class="pilltag">まず薬を決める</span><span class="chev">›</span></button>
+    <div class="treatpanel">
+      <p>第一選択は<b>マクロライド</b>。薬の主目的は「症状を治す」より<b>排菌を止めて周囲（特に乳児）にうつさないこと</b>。開始から約5日で培養陰性化。<b>カタル期（発症〜2週）</b>なら咳も短縮できるが、痙咳期以降は症状改善は乏しく、それでも<b>二次感染防止目的で投与</b>する。</p>
+
+      <div class="seg">
+        <button class="segbtn active" data-t="first">第一選択：マクロライド</button>
+        <button class="segbtn resist" data-t="resist">マクロライド耐性を疑うとき</button>
+      </div>
+
+      <div class="segpanel" id="seg-first">
+        <table class="rxtable">
+          <thead><tr><th>薬剤（成人・経口）</th><th>用法・用量</th><th>日数</th></tr></thead>
+          <tbody>
+            <tr><td class="drug">アジスロマイシン<br>（AZM／ジスロマック）<span style="color:#b23434">*</span></td><td>1回 <b>500 mg</b>・1日1回</td><td class="days">5日間</td></tr>
+            <tr><td class="drug">クラリスロマイシン<br>（CAM／クラリス）</td><td>1回 <b>200 mg</b>・1日2回</td><td class="days">7日間</td></tr>
+            <tr><td class="drug">エリスロマイシン<br>（EM／エリスロシン）</td><td>1回 <b>400 mg</b>・1日3回</td><td class="days">14日間</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">開始から約5日で排菌を抑制。痙咳期以降は症状改善は期待しにくいが、<b>他者への二次感染防止</b>のため投与を推奨（発症〜3週、<b>医療従事者は6週</b>まで）。</div>
+        <p class="note-src"><span style="color:#b23434">*</span> AZMは国内で百日咳の保険適応がない点に注意（実臨床では汎用）。用量は成人の目安。</p>
+      </div>
+
+      <div class="segpanel hidden" id="seg-resist">
+        <table class="rxtable">
+          <thead><tr><th>薬剤（成人・経口）</th><th>用法・用量</th><th>日数</th></tr></thead>
+          <tbody>
+            <tr><td class="drug">ST合剤<br>（バクタ®配合錠）<span style="color:#b23434">*</span></td><td>1回 <b>2錠</b>・1日2回</td><td class="days">14日間</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn"><b>2025年の流行株＝マクロライド高度耐性（23S rRNA A2047G変異）。</b>耐性かどうかを臨床で見分けるのは難しく、<b>適切なマクロライドで数日たっても咳・排菌が続く／流行株曝露</b>のときに疑う。代替として十分な知見のある薬は少ないが、<b>現状ST合剤が推奨</b>。反応不良・重症・接触者では<b>マクロライド＋ST合剤の併用</b>も検討。</div>
+        <p class="note-src"><span style="color:#b23434">*</span> ST合剤は低出生体重児・新生児・妊娠末期には注意。重症例ではMIC良好の報告としてピペラシリン、PIPC/TAZ、セフォペラゾン・スルバクタムの14日治療も。</p>
+      </div>
+
+      <p class="note-src">出典：成人用量は 石和田 2025（Medical Practice, 表1）。耐性・併用は 森永 2025／石和田 2025。</p>
+    </div>
+  </section>
+
+  <main class="steps" id="steps">
+
+    <section class="item">
+      <button class="q"><span class="num">1</span> なぜ「治療」と「診断」がズレるのか<span class="chev">›</span></button>
+      <div class="panel">
+        <p>百日咳の抗菌薬（マクロライド）が<b>咳そのものを短くできるのはカタル期＝発症〜2週</b>だけです。痙咳期に入ると咳は菌ではなく気道の反応で続くため、抗菌薬を足しても症状は変わりません。</p>
+        <p>ところが成人は「ただの風邪」と思って粘り、<b>受診するのは咳が2〜3週続いてから</b>（＝痙咳期）。この時点では――</p>
+        <ul>
+          <li>治療の<b>症状メリットはすでに小さい</b></li>
+          <li>培養・抗原は<b>感度が落ち始める</b></li>
+          <li>抗体（PT-IgG）は<b>ようやく上がり始める</b></li>
+        </ul>
+        <div class="callout warn"><b>核心：</b>「治療して得する時期」と「受診して確定できる時期」がすれ違う。だから “適切な時期に検査できていない” 感覚が生まれます。この図はそのズレを可視化したものです。</div>
+      </div>
+    </section>
+
+    <section class="item">
+      <button class="q"><span class="num">2</span> Step1｜問診で「百日咳らしさ」を上げる<span class="chev">›</span></button>
+      <div class="panel">
+        <p>検査を選ぶ前に、まず問診で事前確率を見積もります。成人で百日咳を引き上げる因子：</p>
+        <ul>
+          <li><span class="tag t-acc">曝露</span> 家庭・職場に<b>長引く咳の人</b>、特に<b>乳児/小児</b>。地域の流行（2025年は記録的大流行）。前回ワクチンからの年数（免疫は数年で減衰）。</li>
+          <li><span class="tag t-acc">経過</span> 咳が<b>1週間以上</b>／<b>発熱に乏しい</b>／<b>膿性痰なし</b>／<b>炎症反応が乏しい</b>（確定群は咳持続 中央値1.5か月と有意に長い）。</li>
+          <li><span class="tag t-acc">発作所見</span> 発作性の咳込み・吸気性笛声(whoop)・咳込み後嘔吐 → <b>あれば強く示唆</b>。ただし<b>成人では非典型で欠くことが多く、無くても否定しない</b>。</li>
+        </ul>
+        <div class="callout">ここで「百日咳を鑑別に載せるか」をYes/Noで振り分け。載せたら Step2 へ。</div>
+      </div>
+    </section>
+
+    <section class="item">
+      <button class="q"><span class="num">3</span> Step2｜発症週数で検査を選ぶ<span class="chev">›</span></button>
+      <div class="panel">
+        <table>
+          <thead><tr><th>発症からの週数</th><th>第一に出す検査</th><th>感度・特異度の目安</th><th>主な目的</th></tr></thead>
+          <tbody>
+            <tr><td><b>0〜2週</b><br>カタル期</td><td>培養 or 核酸(LAMP)</td><td>培養：感度〜60%・特異度◎／核酸：最も高感度</td><td>診断＋<b>治療も間に合う</b></td></tr>
+            <tr><td><b>2〜3週</b></td><td><b>核酸(LAMP/PCR)</b></td><td>3週以内は高感度、以降低下</td><td>診断・届出／治療は伝播予防中心</td></tr>
+            <tr><td><b>3〜4週〜</b></td><td><b>PT-IgG 抗体（単一血清）</b></td><td>≥100 EU/mLで確定（ワクチン歴なければ10〜100でも）。接種1年以内・乳児には非推奨</td><td>診断・届出</td></tr>
+            <tr><td>補助（2週以内）</td><td>抗原迅速（15分）</td><td>感度86%/特異度97%（対PCR）</td><td>ベッドサイド補助</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn"><b>境界(2〜4週)は要調整：</b>総説により区切りに幅（培養2週・核酸3週 ⇄ 野上は4週で培養/LAMPと血清を分ける）。既定は「2週=培養／3週=核酸／以降=抗体」、境界は<b>核酸＋抗体の併用</b>を推奨案としています。</div>
+      </div>
+    </section>
+
+    <section class="item">
+      <button class="q"><span class="num">4</span> Step3｜治療の窓とマクロライド耐性<span class="chev">›</span></button>
+      <div class="panel">
+        <ul>
+          <li><span class="tag t-succ">症状を短くしたい</span> マクロライド（AZM/CAM/EM）を<b>カタル期（発症〜2週）</b>に。5〜7日以内投与で咳持続が有意に短縮。<b>痙咳期以降は症状効果は乏しい</b>。</li>
+          <li><span class="tag t-succ">痙咳期に受診した成人</span> 治療目的は<b>排菌停止＝伝播予防</b>（発症〜3週、<b>医療従事者は6週</b>まで）。「症状は変わらないが周りにうつさないため」と説明する。</li>
+          <li><span class="tag t-dang">2025年の耐性</span> マクロライド耐性株（23S rRNA A2047G変異）が出現。効果不良なら<b>ST合剤</b>等の代替を検討。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="item">
+      <button class="q"><span class="num">5</span> 検査を出す“3つの目的”で有用性を判定<span class="chev">›</span></button>
+      <div class="panel">
+        <p>同じ検査でも、時期によって「何のために出すか」が変わります。ここを分けて考えるのがこのツールの肝です。</p>
+        <table>
+          <thead><tr><th>目的</th><th>問い</th><th>早期(0〜2週)</th><th>受診の主流(2週〜)</th></tr></thead>
+          <tbody>
+            <tr><td><b>(a) 診断確定</b></td><td>百日咳と確定/除外できるか</td><td>培養・核酸で◎</td><td>核酸→抗体で◎</td></tr>
+            <tr><td><b>(b) 治療判断</b></td><td>結果で治療を始める/変えるか</td><td><b>結果を待たず経験的治療</b></td><td>症状治療の得は小、伝播予防で判断</td></tr>
+            <tr><td><b>(c) 疫学・届出</b></td><td>確定のために出すか</td><td>◯</td><td><b>◎（5類全数把握）</b></td></tr>
+          </tbody>
+        </table>
+        <div class="callout">出力の一例（発症3週・乳児と同居・発熱なし）：事前確率<b>中〜高</b> → 推奨は<b>PT-IgG単一血清</b>。位置づけ＝「診断確定◎／症状治療△／届出と乳児防御のため◎」。治療は伝播予防目的でマクロライド。</div>
+      </div>
+    </section>
+
+    <section class="item">
+      <button class="q"><span class="num">6</span> ひとこと：数字の出し方（検査後確率）<span class="chev">›</span></button>
+      <div class="panel">
+        <p>感度・特異度は多くが「対PCRの相対値」です。振り分けに本当に効くのは、問診の事前確率と掛け合わせた<b>検査後確率</b>――「この人がこの検査で陽性なら、何％が本当に百日咳か」。</p>
+        <p>アプリ版では、問診で決めた事前確率 × 週数で選んだ検査の性能 → <b>検査後確率と“この検査を出す意味（a/b/c）”</b>を一緒に返す形を想定しています。</p>
+        <div class="callout warn">評価軸（＝“ベストの状態”を何で測るか）は、① 確定率／② 適切な時期の治療到達率／③ 届出漏れの少なさ、のどれを主にするか要相談。</div>
+      </div>
+    </section>
+
+  </main>
+
+  <p class="footer">
+    出典：外来Hub「百日咳」資料 19本（Drive 060_百日咳）を基に作成。数値は総説からの目安で<b>暫定・要照合</b>（培養感度〜60%・LAMP/PCR 3週以内・抗原86%/97%・PT-IgG ≥100 EU/mL 等）。<br>
+    ver.0.1 雛形 ／ この最上部の図をヘッダーに、下のボタンで段階的に説明する構成です。
+  </p>
+
+</div>
+
+<script>
+  // 治療ブロックの開閉
+  document.getElementById('treatToggle').addEventListener('click', function(){
+    document.getElementById('treatBlock').classList.toggle('open');
+  });
+  // 抗生剤セレクション（第一選択 / 耐性）
+  document.querySelectorAll('.segbtn').forEach(function(sb){
+    sb.addEventListener('click', function(){
+      document.querySelectorAll('.segbtn').forEach(function(b){ b.classList.remove('active'); });
+      sb.classList.add('active');
+      var t = sb.getAttribute('data-t');
+      document.getElementById('seg-first').classList.toggle('hidden', t !== 'first');
+      document.getElementById('seg-resist').classList.toggle('hidden', t !== 'resist');
+    });
+  });
+
+  document.querySelectorAll('.item .q').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btn.parentElement.classList.toggle('open');
+      syncToggleLabel();
+    });
+  });
+  var toggleBtn = document.getElementById('toggleAll');
+  function syncToggleLabel(){
+    var items = document.querySelectorAll('.item');
+    var openCount = document.querySelectorAll('.item.open').length;
+    toggleBtn.textContent = (openCount === items.length) ? '△ すべて閉じる' : '▽ すべて開く';
+  }
+  toggleBtn.addEventListener('click', function(){
+    var items = document.querySelectorAll('.item');
+    var allOpen = document.querySelectorAll('.item.open').length === items.length;
+    items.forEach(function(it){ it.classList.toggle('open', !allOpen); });
+    syncToggleLabel();
+  });
+</script>
+</body>
+</html>
