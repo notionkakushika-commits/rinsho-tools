@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>狭心症トリアージ｜循環器に送るか否か</title>
+<style>
+ :root{
+  --bg:#eceff2; --card:#ffffff; --ink:#1c2630; --sub:#55636e;
+  --line:#e2e8ee; --accent:#b5342e; --accent-d:#8f2823; --accent-bg:#fbecea;
+  --refer:#1d6fb8; --refer-bg:#e9f1fb;
+  --func:#b8860b; --func-bg:#fdf6e3;
+  --green:#5a7d2a; --green-bg:#eef5e3;
+  --red:#c0392b; --gray:#6b7886; --gray-bg:#eef2f5;
+  --ev:#33414d; --ev-bg:#f3f6f8;
+  --shadow:0 2px 8px rgba(20,40,60,.06),0 14px 40px rgba(20,40,60,.08);
+ }
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  line-height:1.6;display:flex;justify-content:center;padding:32px 24px 60px}
+ .app{width:100%;max-width:1000px;background:var(--card);border-radius:22px;
+  box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line)}
+ .bar{background:var(--card);border-bottom:1px solid var(--line);padding:22px 40px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:5}
+ .bar .dot{width:16px;height:16px;border-radius:50%;background:var(--accent)}
+ .bar .ttl{font-weight:800;font-size:26px}
+ .bar .ttl small{font-weight:500;font-size:16px;color:var(--sub);margin-left:12px}
+ .bar .home{margin-left:auto;border:0;background:var(--gray-bg);color:var(--sub);
+  font-size:16px;font-weight:700;border-radius:12px;padding:12px 20px;cursor:pointer}
+ .steps{display:flex;gap:10px;padding:20px 40px 0}
+ .steps .s{flex:1;height:9px;border-radius:5px;background:#dde4ea}
+ .steps .s.on{background:var(--accent)} .steps .s.done{background:#dba9a5}
+ .screen{padding:30px 40px 40px}
+
+ .qno{display:inline-block;font-size:16px;font-weight:800;letter-spacing:.03em;color:var(--accent-d);
+  background:var(--accent-bg);padding:7px 16px;border-radius:15px;margin-bottom:18px}
+ .qq{font-size:32px;font-weight:800;margin:0 0 10px;line-height:1.35}
+ .qhint{color:var(--sub);font-size:19px;margin:0 0 26px}
+ .opts{display:flex;flex-direction:column;gap:16px;margin-bottom:26px}
+ .opt{display:flex;gap:20px;align-items:center;text-align:left;width:100%;border:2px solid var(--line);
+  background:var(--card);border-radius:18px;padding:24px 28px;cursor:pointer;font:inherit;color:var(--ink);
+  transition:.12s;box-shadow:0 1px 3px rgba(20,40,60,.04)}
+ .opt:hover{border-color:var(--accent);background:#fffafa;transform:translateY(-1px)}
+ .opt .yn{flex:none;font-size:16px;font-weight:800;border-radius:12px;padding:12px 16px;min-width:82px;text-align:center}
+ .yn.y{background:var(--accent-bg);color:var(--red)} .yn.n{background:var(--green-bg);color:var(--green)} .yn.q{background:var(--refer-bg);color:var(--refer)}
+ .opt>span:nth-child(2){display:block;flex:1}
+ .opt .ot{display:block;font-size:22px;font-weight:800;line-height:1.4} .opt .od{display:block;font-size:16.5px;color:var(--sub);font-weight:500;margin-top:12px;line-height:1.9}
+ .opt .arr{margin-left:auto;color:var(--accent);font-weight:800;font-size:30px;flex:none}
+
+ .banner{border-radius:20px;padding:30px 34px;color:#fff;margin-bottom:24px}
+ .banner.urgent{background:var(--red)} .banner.refer{background:var(--refer)}
+ .banner.func{background:var(--func)} .banner.low{background:var(--green)}
+ .banner .bk{font-size:16px;font-weight:700;opacity:.92}
+ .banner .bm{font-size:38px;font-weight:800;margin-top:6px;line-height:1.25}
+ .banner .bs{font-size:18px;margin-top:10px;opacity:.95}
+
+ .cols{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+ @media(max-width:820px){ .cols{grid-template-columns:1fr} }
+ .todo h3{font-size:18px;margin:0 0 14px;color:var(--accent-d)}
+ .todo ul{margin:0;padding:0;list-style:none}
+ .todo li{position:relative;padding:16px 18px 16px 40px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;margin-bottom:12px;font-size:18.5px;line-height:1.55}
+ .todo li::before{content:"▸";position:absolute;left:16px;top:16px;color:var(--accent);font-weight:800;font-size:19px}
+ .todo li b{font-weight:800}
+ .todo li .drugs{margin:8px 0 4px}
+ .todo li .drug{position:relative;padding:6px 0 6px 22px;font-size:18px;line-height:1.5;font-weight:800}
+ .todo li .drug::before{content:"";position:absolute;left:4px;top:12px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+ .todo li .note{display:block;color:var(--sub);font-weight:500;font-size:15px;margin-top:4px}
+
+ .evp{background:var(--ev-bg);border:1px solid #dbe2e8;border-radius:16px;padding:22px 24px}
+ .evp .eh{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;color:var(--ev);margin-bottom:14px}
+ .evp .eh::before{content:"EVIDENCE";font-size:12px;font-weight:800;letter-spacing:.08em;
+  color:#fff;background:var(--ev);padding:4px 10px;border-radius:8px}
+ .evrow{padding:12px 0;border-top:1px solid #e4eaef}
+ .evrow:first-of-type{border-top:0;padding-top:2px}
+ .evrow .k{font-size:15px;color:var(--sub);font-weight:700;margin-bottom:3px}
+ .evrow .v{font-size:18px;color:var(--ink);font-weight:500;line-height:1.55}
+ .evrow .v b{font-weight:800} .evrow .v .num{font-weight:800;color:var(--ev)}
+ .evsrc{margin-top:14px;padding-top:12px;border-top:1px dashed #d3dbe2;font-size:14px;color:var(--accent-d);font-weight:700}
+
+ .tabs{display:flex;gap:10px;padding:18px 40px 0}
+ .tabs button{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:14px 26px;font:inherit;font-weight:800;font-size:18px;color:var(--sub);cursor:pointer;transition:.12s}
+ .tabs button.on{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-d)}
+ .dintro{font-size:17px;color:var(--sub);margin:0 0 20px}
+ .dcat{font-size:16px;font-weight:800;color:var(--accent-d);letter-spacing:.03em;margin:24px 0 12px}
+ .dcat:first-of-type{margin-top:2px}
+ .dcard{border:2px solid var(--line);background:var(--card);border-radius:16px;margin-bottom:14px;overflow:hidden}
+ .dhead{display:flex;gap:16px;align-items:center;width:100%;text-align:left;border:0;background:transparent;font:inherit;color:var(--ink);padding:20px 24px;cursor:pointer}
+ .dhead .dn{font-size:21px;font-weight:800} .dhead .dg{font-size:15px;color:var(--sub);font-weight:600;margin-left:8px}
+ .dhead .dcls{flex:none;font-size:14px;font-weight:800;color:var(--refer);background:var(--refer-bg);border-radius:10px;padding:6px 12px}
+ .dhead .dchev{margin-left:auto;color:var(--accent);font-weight:800;font-size:24px;transition:.15s;flex:none}
+ .dcard.open .dchev{transform:rotate(90deg)}
+ .dcard.ref{border-color:#e6c9a0;background:#fdf8ef}
+ .dcard.ref .dhead .dn{color:var(--func)} .dcard.ref .dchev{color:var(--func)}
+ .dcard.ref .dcls{color:#fff;background:var(--func)}
+ .dcard.guide{border-color:#bcd6ef;background:#f2f8fd}
+ .dcard.guide .dhead .dn,.dcard.guide .dchev{color:var(--refer)}
+ .dcard.guide .dcls{color:#fff;background:var(--refer)}
+ .guide{margin:8px 0 4px}
+ .grow{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid #dbe7f2}
+ .grow .gq{flex:1;font-size:18px;line-height:1.5;font-weight:600}
+ .grow .ga{flex:none;font-size:16px;font-weight:800;border-radius:10px;padding:10px 16px;white-space:nowrap}
+ .grow .ga.ct{background:var(--refer-bg);color:var(--refer)}
+ .grow .ga.mri{background:#eef5e3;color:var(--green)}
+ .dbody{display:none;padding:0 24px 24px} .dcard.open .dbody{display:block}
+ .drow{padding:12px 0;border-top:1px solid #e4eaef;font-size:18px;line-height:1.55}
+ .drow .rk{font-size:14px;color:var(--sub);font-weight:700;margin-bottom:3px}
+ .drow .rk.good{color:var(--green)} .drow .rk.bad{color:var(--red)} .drow .rk.fit{color:var(--accent-d)}
+ .dwarn{background:#fff5f4;border:1.5px solid #f0cfca;border-radius:12px;padding:14px 18px;margin-top:14px}
+ .dwarn .wh{font-size:15px;font-weight:800;color:var(--red);margin-bottom:8px}
+ .dwarn ul{margin:0;padding-left:20px} .dwarn li{font-size:17px;line-height:1.6;margin-bottom:6px}
+ .footbtns{display:flex;gap:14px;padding:0 40px 30px}
+ .fb{border:0;border-radius:14px;padding:16px 30px;font:inherit;font-size:18px;font-weight:700;cursor:pointer}
+ .fb.back{background:var(--gray-bg);color:var(--sub)} .fb.again{background:var(--ink);color:#fff}
+ .hideb{display:none}
+ .disc{font-size:13.5px;color:var(--sub);text-align:center;padding:0 40px 24px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="bar">
+  <span class="dot"></span>
+  <span class="ttl">狭心症トリアージ<small>循環器に送るか否か</small></span>
+  <button class="home" id="home">最初から</button>
+ </div>
+ <div class="tabs" id="tabs">
+  <button data-tab="flow" class="on">フロー（振り分け）</button>
+  <button data-tab="drug">薬ダッシュボード</button>
+  <button data-tab="exam">検査ダッシュボード</button>
+ </div>
+ <div id="flowmode">
+  <div class="steps" id="steps"></div>
+  <div class="screen" id="screen"></div>
+  <div class="footbtns">
+   <button class="fb back hideb" id="back">← 戻る</button>
+   <button class="fb again hideb" id="again">もう一度</button>
+  </div>
+ </div>
+ <div id="drugmode" style="display:none"><div class="screen" id="drugscreen"></div></div>
+ <div id="exammode" style="display:none"><div class="screen" id="examscreen"></div></div>
+ <p class="disc">胸部症状の振り分け補助。数値・基準はガイドライン等に基づく再構成（要・原著照合）。最終判断は医師が行ってください。</p>
+</div>
+
+<script>
+"use strict";
+const NODES={
+ a_start:{ step:1, type:"q", qno:"STEP 1 ・ まず緊急を除外",
+  q:"緊急（ACS・致死的胸痛）を疑う所見はあるか", hint:"一つでもあれば、安定狭心症の評価より先に緊急対応。",
+  opts:[
+   {yn:"y", t:"緊急所見あり（いずれか）", d:"安静時／20分以上持続／増悪・冷汗・嘔吐・放散痛<br>心電図ST変化<br>トロポニン上昇<br>血行動態不安定<br>突然の最強痛・背部へ移動（大動脈解離）<br>呼吸困難＋低酸素（肺塞栓）", to:"r_emergency"},
+   {yn:"n", t:"緊急所見はない", d:"一般内科の初期評価へ進む", to:"a_eval"}
+  ],
+  ev:{ title:"緊急（致死的胸痛）のRed flag", rows:[
+   ["ACS", "安静時／<span class='num'>20分以上</span>持続／増悪傾向、冷汗・悪心・放散痛、心電図ST-T変化、トロポニン上昇"],
+   ["大動脈解離", "突然の“引き裂かれる”最強痛・背部へ移動、血圧左右差"],
+   ["肺塞栓", "呼吸困難・頻呼吸・低酸素、DVT／長期臥床・術後"]
+  ], src:"ACS（急性冠症候群）の評価／AIメモ"}},
+
+ a_eval:{ step:2, type:"q", qno:"STEP 2 ・ 一般内科の初期評価",
+  q:"初期評価（心電図・胸部X線・採血）で異常所見は？", hint:"問診・診察 ＋ 12誘導心電図・胸部X線・採血（トロポニン、貧血・甲状腺、必要時D-dimer／BNP）。",
+  opts:[
+   {yn:"y", t:"明らかな急性虚血・危険な不整脈・著明異常", d:"→ 緊急対応へ", to:"r_emergency"},
+   {yn:"q", t:"軽度〜非特異的異常／陳旧性変化／判断に迷う", d:"→ 後日 循環器内科へ", to:"r_refer"},
+   {yn:"n", t:"検査は正常範囲", d:"→ 病歴の型で判断へ", to:"a_pretest"}
+  ],
+  ev:{ title:"初期評価でやること・解釈", rows:[
+   ["12誘導心電図", "発作外は正常が多い（<b>正常でも否定できない</b>）。ST-T変化・異常Q波・陰性Tに注意"],
+   ["胸部X線", "心拡大・肺うっ血、気胸・肺炎など他疾患の除外"],
+   ["採血", "トロポニン(ACS)、貧血・甲状腺(需要増)、D-dimer(解離／塞栓)、BNP"]
+  ], src:"狭心症の診断と検査の手順（近森）／AIメモ"}},
+
+ a_pretest:{ step:3, type:"q", qno:"STEP 3 ・ 病歴の型と背景",
+  q:"病歴の型・背景はどれに最も近いか（検査正常でも）", hint:"典型3徴＝①労作／ストレスで誘発　②胸骨後の圧迫感　③安静・硝酸薬で数分で軽快。",
+  opts:[
+   {yn:"y", t:"典型的（3徴）／非典型（2徴）＋中〜高リスク", d:"高齢・男性・喫煙・糖尿病・脂質・家族歴　→　後日 循環器", to:"r_refer"},
+   {yn:"q", t:"夜間・安静時・早朝中心／閉経期女性の非典型", d:"冠攣縮・微小血管を疑う　→　後日 循環器（機能的精査）", to:"r_refer_func"},
+   {yn:"n", t:"非狭心症性（0〜1徴）・低リスク・他因が明らか", d:"逆流・筋骨格・不安など　→　可能性は低い", to:"r_low"}
+  ],
+  ev:{ title:"狭心症“らしさ”とリスク", rows:[
+   ["典型3徴", "労作誘発／胸骨後の圧迫感／安静・硝酸薬で軽快 → <b>3=典型・2=非典型・0〜1=非狭心症性</b>"],
+   ["リスク因子", "高齢・男性・喫煙・糖尿病・脂質異常・早発冠動脈疾患の家族歴"],
+   ["非心臓性の鑑別", "胃食道逆流・筋骨格（肋軟骨・胸壁）・心理的（不安・パニック）"]
+  ], src:"一般外来でみる安定狭心症（岩永・宮崎）／AIメモ"}},
+
+ /* ===== 結果 ===== */
+ r_emergency:{ step:4, type:"r", cls:"urgent", bk:"振り分け", bm:"緊急（ACS・致死的胸痛 疑い）", bs:"ここで初期治療をしてから、PCI可能施設へ超緊急搬送。ただし大動脈解離を否定できないうちは抗血小板・抗凝固を投与しない。",
+  todo:[
+   "<b>モニタ・静脈路・12誘導心電図・SpO2</b>。酸素は<b>SpO2＜90%</b>のときだけ",
+   "<b>抗血小板</b><div class='drugs'><div class='drug'>バイアスピリン 100mg×2錠（計200mg）を噛み砕いて内服</div></div><span class='note'>※禁忌＝活動性出血・アスピリン喘息</span>",
+   "<b>P2Y12（PCI方針・循環器と／いずれか）</b><div class='drugs'><div class='drug'>エフィエント（プラスグレル）20mg 1回</div><div class='drug'>プラビックス（クロピドグレル）300mg 1回</div></div><span class='note'>※高齢・低体重・出血既往は注意</span>",
+   "<b>硝酸薬（胸痛持続・血圧保持時／いずれか）</b><div class='drugs'><div class='drug'>ニトロペン 0.3mg 舌下</div><div class='drug'>ミオコールスプレー 1噴霧</div><div class='drug'>持続・心不全・高血圧 → ミオコール点滴静注</div></div><span class='note'>5分毎に最大3回。※禁忌＝収縮期血圧＜90・下壁/右室梗塞・PDE5併用</span>",
+   "<b>抗凝固（PCI方針で）</b><div class='drugs'><div class='drug'>ヘパリンNa（ヘパリンナトリウム注）5000単位 静注（≒60単位/kg）</div></div><span class='note'>※大動脈解離を否定できないうちは投与しない</span>",
+   "<b>鎮痛</b><div class='drugs'><div class='drug'>モルヒネ塩酸塩注 2〜4mg 静注</div></div><span class='note'>硝酸薬で取れない胸痛。NSTEMIは控えめ</span>",
+   "<b>搬送：PCI可能施設へ超緊急連絡</b>。STEMIは再灌流を急ぐ（door-to-balloon短縮）"
+  ],
+  ev:{ title:"場合分け・禁忌（覚える）", rows:[
+   ["STEMI（ST上昇／新規LBBB）", "再灌流が最優先。DAPT＋ヘパリン＋対症で<b>即PCI施設へ</b>"],
+   ["NSTEMI／不安定狭心症", "リスク層別のうえ DAPT＋抗凝固、循環器へ"],
+   ["大動脈解離が否定できない", "<b>抗血小板・抗凝固は禁忌</b> → 先に造影CT・血圧左右差で除外。降圧・鎮痛を優先"],
+   ["VF／VT・心停止", "ACLS（ただちに除細動）"],
+   ["禁忌の整理", "ニトロ＝低血圧／下壁・右室梗塞／PDE5併用、アスピリン＝喘息／活動性出血"]
+  ], src:"ACS（急性冠症候群）の評価／循環器GL（実投与は施設プロトコル・循環器指示に従う）"}},
+
+ r_refer:{ step:4, type:"r", cls:"refer", bk:"振り分け", bm:"後日 循環器内科へ紹介", bs:"安定だが狭心症を否定できない。帰宅時にニトロ頓用を持たせ、セーフティネットを説明。",
+  todo:[
+   "<b>ニトロ頓用（いずれか）</b><div class='drugs'><div class='drug'>ニトロペン 0.3mg 舌下</div><div class='drug'>ミオコールスプレー 1噴霧</div></div><span class='note'>発作時1回→5分で改善なければ再度、計3回・約15分で改善なければ救急要請。※禁忌＝PDE5併用・低血圧</span>",
+   "<b>抗血小板（疑いが強く・出血リスク/禁忌なしなら開始を検討）</b><div class='drugs'><div class='drug'>バイアスピリン 100mg 1日1回</div></div><span class='note'>※不確実・出血リスク高なら循環器判断まで保留も可</span>",
+   "<b>発作が頻回なら橋渡し（いずれか・できれば循環器と）</b><div class='drugs'><div class='drug'>アイトロール錠 20mg 分2（長時間硝酸）</div><div class='drug'>フランドルテープ 40mg 1日1枚</div><div class='drug'>アムロジン（アムロジピン）2.5〜5mg 分1（Ca拮抗）</div></div>",
+   "<b>リスク因子管理</b><div class='drugs'><div class='drug'>スタチン：リピトール 10mg／クレストール 2.5mg 等</div></div><span class='note'>＋ 禁煙・血圧・血糖</span>",
+   "<b>紹介状</b>に 心電図・採血・胸部X線・病歴の型・リスク を添付",
+   "<b>セーフティネット</b>：安静時・20分以上・増悪・冷汗を伴うときはすぐ受診／救急"
+  ],
+  ev:{ title:"帰宅処方の考え方", rows:[
+   ["ニトロ頓用", "発作時の対症＋安全策として<b>持たせるのが基本</b>。効かない／反復するときは<b>救急要請</b>を明確に指示"],
+   ["アスピリン", "器質的狭心症の疑いが強ければ100mg開始を検討。<b>確定前・出血リスクでは保留</b>し循環器に委ねる判断も可"],
+   ["抗狭心症薬・スタチン", "本格導入は循環器だが、脂質・血圧など危険因子は先行してよい。安定例のPCIは予後を変えず薬物先行"]
+  ], src:"一般外来でみる安定狭心症（岩永）／心臓リハ（安達）／AIメモ"}},
+
+ r_refer_func:{ step:4, type:"r", cls:"func", bk:"振り分け", bm:"後日 循環器（機能的狭心症の精査）", bs:"冠攣縮性・微小血管狭心症を念頭。帰宅時に頓用ニトロ＋Ca拮抗薬を持たせる。",
+  todo:[
+   "<b>頓用ニトロ（いずれか）</b><div class='drugs'><div class='drug'>ニトロペン 0.3mg 舌下</div><div class='drug'>ミオコールスプレー 1噴霧</div></div><span class='note'>効かない／反復するときは救急要請</span>",
+   "<b>冠攣縮疑い → まずCa拮抗薬（いずれか）</b><div class='drugs'><div class='drug'>コニール（ベニジピン）4mg 分1（〜8mg 分2）</div><div class='drug'>ヘルベッサーR（ジルチアゼム）100mg 分1（〜200mg）</div><div class='drug'>アムロジン（アムロジピン）2.5〜5mg 分1</div></div><b>予防で追加</b><div class='drugs'><div class='drug'>シグマート（ニコランジル）15mg 分3</div><div class='drug'>アイトロール錠 20mg 分2　or　フランドルテープ 40mg 1日1枚</div></div><span class='note'>禁煙必須。※β遮断薬の単独は攣縮を悪化させるので避ける</span>",
+   "<b>微小血管疑い（閉経期女性・非典型）</b><div class='drugs'><div class='drug'>Ca拮抗薬（アムロジン等）or β遮断薬</div><div class='drug'>シグマート（ニコランジル）15mg 分3</div><div class='drug'>スタチン（リピトール／クレストール）</div></div><span class='note'>症状コントロール中心</span>",
+   "<b>紹介</b>：循環器で機能評価（アセチルコリン／エルゴノビン誘発試験・冠血流予備能）。器質狭窄の合併があれば バイアスピリン100mg 追加を検討",
+   "<b>セーフティネット</b>：安静時・持続・増悪・失神を伴うときはすぐ受診／救急"
+  ],
+  ev:{ title:"機能的狭心症の薬の考え方", rows:[
+   ["冠攣縮性(VSA)", "日本人に多い。<b>Ca拮抗薬が主</b>（コニール・ヘルベッサー）、予防にシグマート／長時間硝酸。難治はファスジル、突然死既往はICD考慮。<b>β遮断単独は禁</b>"],
+   ["微小血管(MVA)", "閉経期女性・<span class='num'>500μm</span>以下の細小動脈。Ca拮抗／β／シグマート／スタチン。従来の抗狭心症薬に抵抗性のことがある"]
+  ], src:"冠攣縮性狭心症GL（山室ら）／微小血管狭心症"}},
+
+ r_low:{ step:4, type:"r", cls:"low", bk:"振り分け", bm:"狭心症の可能性は低い", bs:"低いと説明したうえで、心配ならニトロ頓用＋セーフティネット。",
+  todo:["「症状・検査から<b>狭心症の可能性は低い</b>」と説明","心配が強ければ<b>ニトロ（ニトロペン舌下 or ニトロール）を頓用で少量処方</b>し様子見","他因（逆流・筋骨格・不安）への対応","<b>セーフティネット</b>：安静時・20分以上・増悪・冷汗を伴うときはすぐ受診"],
+  ev:{ title:"低リスクの扱い・ニトロの注意", rows:[
+   ["ニトロの解釈", "軽快しても<b>狭心症の確定にはならない</b>（食道攣縮でも軽快）。無効でも否定不可＝診断目的より対症・安全策"],
+   ["禁忌注意", "PDE5阻害薬併用、下壁／右室梗塞疑いの低血圧では避ける"],
+   ["過剰検査を避ける", "非心臓性が明らかなら、まず原因への対応と経過観察"]
+  ], src:"一般外来でみる安定狭心症（岩永）／AIメモ"}}
+};
+
+let history=["a_start"];
+const screenEl=document.getElementById("screen");
+const stepsEl=document.getElementById("steps");
+const backBtn=document.getElementById("back");
+const againBtn=document.getElementById("again");
+function go(id){ history.push(id); paint(); }
+function paint(){
+ const id=history[history.length-1]; const n=NODES[id];
+ stepsEl.innerHTML=[1,2,3].map(i=>{const cur=n.step,c=i<cur?"done":(i===cur?"on":"");return `<span class="s ${c}"></span>`;}).join("");
+ screenEl.innerHTML = n.type==="q" ? qHTML(n) : rHTML(n);
+ screenEl.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>go(b.dataset.to)));
+ backBtn.classList.toggle("hideb", history.length<=1);
+ againBtn.classList.toggle("hideb", n.type!=="r");
+ window.scrollTo?.({top:0,behavior:"smooth"});
+}
+function evHTML(ev){ if(!ev) return "";
+ const rows=ev.rows.map(r=>`<div class="evrow"><div class="k">${r[0]}</div><div class="v">${r[1]}</div></div>`).join("");
+ return `<div class="evp"><div class="eh">${ev.title}</div>${rows}<div class="evsrc">出典：${ev.src}</div></div>`;
+}
+function qHTML(n){
+ return `<span class="qno">${n.qno}</span><p class="qq">${n.q}</p><p class="qhint">${n.hint}</p>
+  <div class="opts">${n.opts.map(o=>`<button class="opt" data-to="${o.to}">
+    <span class="yn ${o.yn}">${({y:"あり",n:"なし",q:"迷う"})[o.yn]}</span>
+    <span><span class="ot">${o.t}</span><span class="od">${o.d}</span></span><span class="arr">›</span>
+   </button>`).join("")}</div>${evHTML(n.ev)}`;
+}
+function rHTML(n){
+ return `<div class="banner ${n.cls}"><div class="bk">${n.bk}</div><div class="bm">${n.bm}</div><div class="bs">${n.bs}</div></div>
+  <div class="cols">
+   <div class="todo"><h3>やること</h3><ul>${n.todo.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+   ${evHTML(n.ev)}
+  </div>`;
+}
+backBtn.addEventListener("click",()=>{ if(history.length>1){history.pop();paint();} });
+againBtn.addEventListener("click",()=>{ history=["a_start"];paint(); });
+document.getElementById("home").addEventListener("click",()=>{ history=["a_start"];paint(); });
+
+/* ===== 薬ダッシュボード ===== */
+const DRUGS=[
+ {group:"硝酸薬", items:[
+  {n:"ニトロペン", gen:"ニトログリセリン 舌下錠", cls:"硝酸薬", dose:"0.3mg 舌下。発作時1錠→5分で改善なければ再度、計3回まで", use:"狭心症発作の頓用。後日紹介・機能的で持たせる基本", warn:["PDE5阻害薬（バイアグラ/シアリス/レバチオ/ザルティア等ED・肺高血圧・前立腺薬）併用は<b>禁忌＝重症低血圧</b>","収縮期血圧＜90、下壁/右室梗塞では避ける","開封後は失活しやすい（保管・期限に注意）"], pt:"胸痛時に舌下。効かない/繰り返すときは救急要請。頭痛・立ちくらみが出ることがある"},
+  {n:"ミオコールスプレー", gen:"ニトログリセリン 舌下スプレー", cls:"硝酸薬", dose:"1噴霧 舌下。5分毎に最大3回", use:"頓用。錠剤より速効・保存性が良い", warn:["PDE5阻害薬併用は<b>禁忌</b>","低血圧・下壁/右室梗塞は避ける"], pt:"胸痛時に口の中へ1噴霧。効かない/反復は救急要請"},
+  {n:"ミオコール点滴／ミリスロール", gen:"ニトログリセリン 注", cls:"硝酸薬(静注)", dose:"持続静注（血圧を見ながら漸増）", use:"持続する胸痛・心不全・高血圧を伴うACS", warn:["低血圧・PDE5併用に注意（モニタ下で）"], pt:""},
+  {n:"アイトロール", gen:"一硝酸イソソルビド", cls:"硝酸薬(長時間)", dose:"20mg 分2", use:"発作予防（長時間作用）", warn:["連用で耐性 → 無硝酸時間を設ける","PDE5併用は避ける"], pt:"予防の内服。頓用のニトロとは別"},
+  {n:"フランドルテープ", gen:"硝酸イソソルビド 貼付", cls:"硝酸薬(貼付)", dose:"40mg 1日1枚", use:"発作予防（貼付・長時間）", warn:["耐性回避に貼付時間の工夫","PDE5併用は避ける"], pt:"胸〜上腕などに貼る"}
+ ]},
+ {group:"抗血小板", items:[
+  {n:"バイアスピリン", gen:"アスピリン 腸溶錠", cls:"抗血小板", dose:"ACS：100mg×2錠(200mg)噛み砕く／維持 100mg 1日1回", use:"ACS初期・二次予防", warn:["活動性出血・アスピリン喘息は<b>禁忌</b>","消化性潰瘍に注意（必要時PPI併用）","大動脈解離を否定できないうちは投与しない"], pt:"自己中断しない。黒色便・出血傾向に注意"},
+  {n:"エフィエント", gen:"プラスグレル", cls:"P2Y12", dose:"負荷 20mg 1回／維持 3.75mg 1日1回", use:"PCIを行うACS（PCI決定時に）", warn:["<b>脳卒中/TIAの既往は禁忌</b>","≥75歳・体重＜60kgは注意","NSTEMIの先行投与は推奨されない（出血増）"], pt:"出血に注意、自己中断しない"},
+  {n:"プラビックス", gen:"クロピドグレル", cls:"P2Y12", dose:"負荷 300mg 1回／維持 75mg 1日1回", use:"DAPTの選択肢", warn:["出血に注意","CYP2C19（オメプラゾール等PPIと相互作用の可能性）"], pt:"出血に注意、自己中断しない"}
+ ]},
+ {group:"抗凝固", items:[
+  {n:"ヘパリンNa", gen:"ヘパリンナトリウム 注", cls:"抗凝固", dose:"5000単位 静注（≒60単位/kg）", use:"ACS/PCI方針で", warn:["出血・HIT（血小板減少）","<b>大動脈解離を否定できないうちは不可</b>"], pt:""}
+ ]},
+ {group:"Ca拮抗薬", items:[
+  {n:"コニール", gen:"ベニジピン", cls:"Ca拮抗", dose:"4mg 分1（冠攣縮は〜8mg 分2）", use:"冠攣縮性狭心症の第一選択級", warn:["低血圧・浮腫"], pt:"毎日内服。急な中止で攣縮悪化のことも"},
+  {n:"ヘルベッサー／ヘルベッサーR", gen:"ジルチアゼム", cls:"Ca拮抗", dose:"R錠 100mg 分1（〜200mg）", use:"冠攣縮（徐拍作用あり）", warn:["徐脈・房室ブロック","β遮断薬併用に注意","心不全（収縮不全）に注意"], pt:"脈が遅くなりすぎないか注意"},
+  {n:"アムロジン／ノルバスク", gen:"アムロジピン", cls:"Ca拮抗", dose:"2.5〜5mg 分1", use:"冠攣縮・高血圧合併", warn:["浮腫・ほてり"], pt:"毎日内服"}
+ ]},
+ {group:"冠拡張（ニコランジル）", items:[
+  {n:"シグマート", gen:"ニコランジル", cls:"冠拡張", dose:"15mg 分3", use:"冠攣縮・微小血管・労作性の予防", warn:["硝酸様作用あり → <b>PDE5阻害薬併用に注意</b>","口内・肛門などの潰瘍（頻度低いが特徴的）"], pt:"予防の内服。口内炎が続くときは相談"}
+ ]},
+ {group:"スタチン", items:[
+  {n:"リピトール", gen:"アトルバスタチン", cls:"スタチン", dose:"10mg 1日1回", use:"二次予防・脂質", warn:["筋障害（CK上昇・筋痛）","肝障害"], pt:"筋肉痛が強いときは相談"},
+  {n:"クレストール", gen:"ロスバスタチン", cls:"スタチン", dose:"2.5〜5mg 1日1回", use:"二次予防・脂質", warn:["筋障害・肝障害"], pt:"筋肉痛が強いときは相談"}
+ ]},
+ {group:"鎮痛", items:[
+  {n:"モルヒネ塩酸塩注", gen:"モルヒネ", cls:"鎮痛(静注)", dose:"2〜4mg 静注", use:"ACSで硝酸薬でも取れない強い胸痛", warn:["呼吸抑制・低血圧・悪心","NSTEMIでは控えめ（予後悪化の報告）"], pt:""}
+ ]},
+ {group:"β遮断薬（注意）", items:[
+  {n:"メインテート", gen:"ビソプロロール", cls:"β遮断", dose:"労作性で循環器と（例 0.625〜5mg）", use:"労作性狭心症・心保護（陳旧性心筋梗塞後など）", warn:["<b>冠攣縮性狭心症では単独使用を避ける（攣縮を悪化）</b>","喘息・高度徐脈・房室ブロックに注意"], pt:"急な中止をしない"}
+ ]},
+ {group:"併用に注意（説明用ボード）", items:[
+  {n:"PDE5阻害薬", gen:"ホスホジエステラーゼ5阻害薬", cls:"併用注意", ref:true,
+   dose:"ED：バイアグラ(シルデナフィル)／シアリス(タダラフィル)／レビトラ(バルデナフィル)　｜　肺高血圧：レバチオ・アドシルカ　｜　前立腺肥大：ザルティア(タダラフィル)",
+   use:"血管を広げる薬（NO–cGMP経路）。<b>ニトロ・硝酸薬・シグマート（ニコランジル）と併用すると重症低血圧</b>を起こす",
+   warn:["ニトロ／硝酸薬／シグマートと<b>併用は禁忌</b>","シルデナフィル・バルデナフィルは<b>24時間</b>、タダラフィルは<b>48時間</b>あける","特に男性で ED薬・前立腺肥大薬（ザルティア）の使用を必ず確認（本人が言い出しにくい）"],
+   pt:"「バイアグラなどを最近使っていませんか？」と一言確認。使っていたら<b>ニトロは出さない</b>"}
+ ]}
+];
+function renderDrugs(){
+ const el=document.getElementById("drugscreen");
+ let h='<p class="dintro">狭心症で使う薬の早見。薬名を押すと <b>用量・使いどころ・⚠️注意/相互作用・患者への一言</b> が開きます。</p>';
+ DRUGS.forEach(g=>{
+  h+='<div class="dcat">'+g.group+'</div>';
+  g.items.forEach(d=>{
+   const warn=(d.warn&&d.warn.length)?'<div class="dwarn"><div class="wh">⚠️ 注意・禁忌・相互作用</div><ul>'+d.warn.map(w=>'<li>'+w+'</li>').join('')+'</ul></div>':'';
+   const pt=d.pt?'<div class="drow"><div class="rk">'+(d.ref?'確認の一言':'患者への一言（最低限・医師寄り）')+'</div>'+d.pt+'</div>':'';
+   const l1=d.ref?'該当する薬（商品名）':'用量（狭心症）';
+   const l2=d.ref?'どんな薬・なぜ注意':'使いどころ';
+   h+='<div class="dcard'+(d.ref?' ref':'')+'"><button class="dhead"><span class="dn">'+d.n+'<span class="dg">'+d.gen+'</span></span><span class="dcls">'+d.cls+'</span><span class="dchev">›</span></button>'
+     +'<div class="dbody">'
+     +'<div class="drow"><div class="rk">'+l1+'</div>'+d.dose+'</div>'
+     +'<div class="drow"><div class="rk">'+l2+'</div>'+d.use+'</div>'
+     +warn+pt+'</div></div>';
+  });
+ });
+ el.innerHTML=h;
+ el.querySelectorAll(".dhead").forEach(b=>b.addEventListener("click",()=>b.parentElement.classList.toggle("open")));
+}
+document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+ const t=b.dataset.tab;
+ document.getElementById("flowmode").style.display=t==="flow"?"block":"none";
+ document.getElementById("drugmode").style.display=t==="drug"?"block":"none";
+ document.getElementById("exammode").style.display=t==="exam"?"block":"none";
+ window.scrollTo?.({top:0,behavior:"smooth"});
+}));
+
+/* ===== 検査ダッシュボード（循環器が次にする検査） ===== */
+const EXAMS=[
+ {group:"非侵襲・機能／スクリーニング", items:[
+  {n:"運動負荷心電図", sub:"トレッドミル/エルゴメーター", cat:"非侵襲", what:"運動でのST変化・症状・血圧/心拍反応", sn:"感度 約68%・特異度 約77%（女性で偽陽性が多い）", merit:"簡便・安価・広く実施可。運動耐容能や予後も評価", demerit:"精度は低め。運動できないと不可。安静時ST異常・LBBB・ジギタリスで判定困難", fit:"運動可能で事前確率が中等度のとき"},
+  {n:"負荷心エコー", sub:"運動/ドブタミン負荷", cat:"非侵襲", what:"負荷での局所壁運動異常", sn:"感度 80–85%・特異度 80–88%", merit:"被曝なし。弁・心機能も同時に評価", demerit:"術者依存。肥満・肺で画質低下", fit:"被曝を避けたい／心エコーが得意な施設"},
+  {n:"心筋血流SPECT", sub:"負荷心筋シンチ（運動/薬剤）", cat:"非侵襲(核医学)", what:"負荷/安静の心筋血流の差＝虚血", sn:"感度 85–90%", merit:"虚血の範囲・重症度、予後評価に有用", demerit:"被曝・時間・費用。多枝病変でバランス虚血を見落とすことも", fit:"機能的な虚血を確認したいとき"},
+  {n:"ホルター心電図", sub:"24時間心電図", cat:"非侵襲", what:"24時間のST変化・不整脈", sn:"—", merit:"夜間/安静時のST上昇（冠攣縮）や不整脈を捉える", demerit:"発作がない日は捕捉できない", fit:"夜間・安静時発作（冠攣縮）や不整脈を疑うとき"}
+ ]},
+ {group:"解剖学的（CT）", items:[
+  {n:"冠動脈CT（CCTA）", sub:"造影CT", cat:"非侵襲(解剖)", what:"冠動脈の狭窄・プラークを直接描出", sn:"感度 95–99%・特異度 約80%。<b>陰性的中率が非常に高い＝“除外”に強い</b>", merit:"非侵襲で解剖が分かる。低〜中リスクの除外に最適", demerit:"高度石灰化・高心拍・不整脈で評価困難。造影剤・被曝。有意狭窄の機能評価は別（FFR-CT）", fit:"<b>低〜中リスクで狭心症を“除外”したいとき（まず造影CT＝CCTAが挙がる）</b>"}
+ ]},
+ {group:"MRI", items:[
+  {n:"心臓MRI", sub:"負荷パーフュージョン/遅延造影", cat:"非侵襲(MRI)", what:"負荷時の心筋灌流・心筋バイアビリティ・性状", sn:"感度 85–90%", merit:"被曝なし。心筋の生存/性状・微小血管も評価できる", demerit:"施設・時間。ガドリニウム造影。閉所恐怖・一部デバイスで制限", fit:"被曝を避けたい／心筋バイアビリティ・性状を見たいとき"}
+ ]},
+ {group:"侵襲・確定／治療", items:[
+  {n:"冠動脈造影（CAG）", sub:"心臓カテーテル", cat:"侵襲", what:"冠動脈狭窄を直接（ゴールドスタンダード）", sn:"確定的", merit:"その場で<b>PCI（治療）まで可能</b>", demerit:"侵襲・合併症（出血・穿刺部・造影腎症）。解剖のみで機能は別（FFR）", fit:"高リスク／非侵襲検査で虚血陽性／症状が強いとき"}
+ ]},
+ {group:"カテーテルでの機能評価", items:[
+  {n:"FFR / iFR", sub:"冠血流予備量比", cat:"機能(侵襲)", what:"その狭窄が実際に虚血を起こすか（機能的意義）", sn:"—", merit:"PCI適応の判断精度が上がる", demerit:"CAG中に行う侵襲的手技", fit:"中間狭窄の意義を判定するとき"},
+  {n:"冠血流予備能 CFR / 微小血管抵抗", sub:"CFR/IMR", cat:"機能", what:"微小血管の機能", sn:"—", merit:"INOCA・微小血管狭心症を評価", demerit:"専門的・施設限定", fit:"器質狭窄がないのに症状がある（微小血管疑い）"},
+  {n:"冠攣縮誘発試験", sub:"アセチルコリン/エルゴノビン", cat:"機能(侵襲)", what:"冠攣縮を誘発して診断", sn:"—", merit:"冠攣縮性狭心症を確定できる", demerit:"侵襲・不整脈リスク（管理下で実施）", fit:"冠攣縮性狭心症を疑うとき"}
+ ]},
+ {group:"使い分け早見（造影CT vs 心臓MRI）", items:[
+  {n:"造影CT（CCTA） と 心臓MRI の使い分け", sub:"どっちを選ぶ", cat:"使い分け", guide:true,
+   body:"<div class='drow'><div class='rk fit'>ひとことで</div><b>造影CT＝“解剖（あるか・除外）”</b>　／　<b>心臓MRI＝“機能・心筋（効いているか・状態）”</b></div>"
+     +"<div class='guide'>"
+     +"<div class='grow'><span class='gq'>まず「冠動脈に病気があるか」を除外したい（低〜中リスク）</span><span class='ga ct'>造影CT（CCTA）</span></div>"
+     +"<div class='grow'><span class='gq'>狭窄が虚血を起こすか／心筋の状態・生存を見たい／被曝を避けたい</span><span class='ga mri'>心臓MRI</span></div>"
+     +"<div class='grow'><span class='gq'>石灰化が強い・高心拍・ステント留置後でCTが評価困難</span><span class='ga mri'>機能検査（MRI/SPECT）へ</span></div>"
+     +"</div>"
+     +"<div class='drow'><div class='rk'>覚え方</div>「あるか・ないか（除外）＝CT」／「効いているか・心筋＝MRI」。最初の入口はたいてい <b>CCTA</b>"}
+ ]}
+];
+function renderExams(){
+ const el=document.getElementById("examscreen");
+ let h='<p class="dintro">循環器に送った後にされる検査の早見（医師用）。検査名を押すと <b>何を見る・感度/特異度・メリット・デメリット・向いている状況</b> が開きます。</p>';
+ EXAMS.forEach(g=>{
+  h+='<div class="dcat">'+g.group+'</div>';
+  g.items.forEach(d=>{
+   const body=d.guide? d.body :
+     ('<div class="drow"><div class="rk">何を見る</div>'+d.what+'</div>'
+     +((d.sn&&d.sn!=="—")?'<div class="drow"><div class="rk">感度・特異度</div>'+d.sn+'</div>':'')
+     +'<div class="drow"><div class="rk good">メリット</div>'+d.merit+'</div>'
+     +'<div class="drow"><div class="rk bad">デメリット・限界</div>'+d.demerit+'</div>'
+     +'<div class="drow"><div class="rk fit">向いている状況（この時これ）</div>'+d.fit+'</div>');
+   h+='<div class="dcard'+(d.guide?' guide':'')+'"><button class="dhead"><span class="dn">'+d.n+'<span class="dg">'+(d.sub||'')+'</span></span><span class="dcls">'+d.cat+'</span><span class="dchev">›</span></button>'
+     +'<div class="dbody">'+body+'</div></div>';
+  });
+ });
+ el.innerHTML=h;
+ el.querySelectorAll(".dhead").forEach(b=>b.addEventListener("click",()=>b.parentElement.classList.toggle("open")));
+}
+renderDrugs();
+renderExams();
+paint();
+</script>
+</body>
+</html>
